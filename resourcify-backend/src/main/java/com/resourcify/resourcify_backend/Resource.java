@@ -12,6 +12,9 @@ public class Resource {
 
     private String name;
     private String description;
+    private String quantity;
+    private String location;
+
 
     // Constructors
     public Resource() {}
@@ -28,4 +31,10 @@ public class Resource {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public String getQuantity() { return quantity; }
+    public void setQuantity(String quantity) { this.quantity = quantity; }
 }

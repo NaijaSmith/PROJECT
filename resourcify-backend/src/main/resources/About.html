@@ -77,6 +77,19 @@
             </ol>
         </section>
     </main>
+    <script>
+   
+        function myMenuFunction() {
+         var i = document.getElementById("navMenu");
+     
+         if(i.className === "nav-menu") {
+             i.className += " responsive";
+         } else {
+             i.className = "nav-menu";
+         }
+        }
+      
+     </script>
     </div>
 
     <footer>
@@ -98,19 +111,5 @@
             </div>
         </div>
     </footer>
-        <script>
-   
-        function myMenuFunction() {
-         var i = document.getElementById("navMenu");
-     
-         if(i.className === "nav-menu") {
-             i.className += " responsive";
-         } else {
-             i.className = "nav-menu";
-         }
-        }
-      
-     </script>
-
 </body>
 </html>

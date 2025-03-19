@@ -8,3 +8,74 @@
     <link rel="stylesheet" href="style.css">
     <title>Resourcify | Home</title>
 </head>
+<body>
+    <div class="wrapper">
+        <nav class="nav">
+            <div class="nav-logo">
+                <p>RESOURCIFY</p>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <ul>
+                    <li><a href="Homepage.html" class="link active">Home</a></li>
+                    <li><a href="Services.html" class="link">Services</a></li>
+                    <li><a href="About.Html" class="link">About</a></li>
+                </ul>
+            </div>
+        <div class="nav-menu-btn">
+            <i class="bx bx-menu" onclick="myMenuFunction()"></i>
+        </div>
+        
+    </nav>
+    <main>
+        <section id="missions">
+            <h2>Missions Accomplished</h2>
+            <div class="grid-container">
+                <div class="grid-item"><img src="mission1.jpg" alt="Mission 1"></div>
+                <div class="grid-item"><img src="mission2.jpg" alt="Mission 2"></div>
+                <div class="grid-item"><img src="mission3.jpg" alt="Mission 3"></div>
+                <div class="grid-item"><img src="mission4.jpg" alt="Mission 4"></div>
+            </div>
+        </section>
+        <section id="sponsors">
+            <h2>Sponsorship Organisations and Banks</h2>
+            <div class="grid-container">
+                <div class="grid-item"><img src="sponsor1.jpg" alt="Sponsor 1"></div>
+                <div class="grid-item"><img src="sponsor2.jpg" alt="Sponsor 2"></div>
+                <div class="grid-item"><img src="sponsor3.jpg" alt="Sponsor 3"></div>
+                <div class="grid-item"><img src="sponsor4.jpg" alt="Sponsor 4"></div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <div class="social-media">
+            <a href="#"><i class='bx bxl-facebook-circle'></i></a>
+            <a href="#"><i class='bx bxl-twitter'></i></a>
+            <a href="#"><i class='bx bxl-instagram'></i></a>
+            <a href="#"><i class='bx bxl-linkedin-circle'></i></a>
+            <a href="#"><i class='bx bxl-whatsapp'></i></a>
+            </div>
+            <div class="contact-details">
+            <p>Email: nicolaskariuki7@gmail.com</p>
+            <p>Phone: +254 718 501 864</p>
+            </div>
+            <div class="legal">
+            <p>&copy; 2025 Resourcify. All rights reserved.</p>
+            <a href="Terms.html" class="link">Terms and Conditions</a>
+            </div>
+        </div>
+    <script>
+   
+        function myMenuFunction() {
+         var i = document.getElementById("navMenu");
+     
+         if(i.className === "nav-menu") {
+             i.className += " responsive";
+         } else {
+             i.className = "nav-menu";
+         }
+        }
+      
+     </script>
+</body>
+</html>
