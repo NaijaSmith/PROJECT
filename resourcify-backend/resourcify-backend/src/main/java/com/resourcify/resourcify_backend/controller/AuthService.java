@@ -21,11 +21,6 @@ public class AuthService {
         if (nameParts.length != 2) {
             throw new RuntimeException("Username must contain both first name and last name!");
         }
-        String firstName = nameParts[0];
-        String lastName = nameParts[1];
-        if (userRepository.existsByFirstNameAndLastName(firstName, lastName)) {
-            throw new RuntimeException("User with this first name and last name is already taken!");
-        }
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email is already in use!");
         }

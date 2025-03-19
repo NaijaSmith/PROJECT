@@ -9,13 +9,7 @@ public class User {
      
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long User_id;
-
-    @Column(nullable = false)
-    private String firstName;
-    
-    @Column(nullable = false)
-    private String lastName;
+    private Long userId;
 
     @Column(unique = true, nullable = false)    
     private String username;
@@ -26,39 +20,28 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    // ✅ No-args constructor
+    public User() {
+    }
+
     // Getters and Setters
     
-    public Long getId() {
-        return User_id;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setId(Long User_id) {
-        this.User_id = User_id;
+    public void setId(Long UserId) {
+        this.userId = userId;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-    
-    public String getLastName() {
-        return lastName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getUsername() { 
-        return username; 
-    }
-
-    public void setUsername(String username) { 
-        this.username = username; 
-    }
     public String getEmail() {
         return email;
     }
@@ -76,4 +59,3 @@ public class User {
     }
 
 }
-

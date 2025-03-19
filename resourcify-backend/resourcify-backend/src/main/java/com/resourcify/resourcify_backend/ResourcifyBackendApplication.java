@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(scanBasePackages = {
     "com.config",
-    "com.resourcify.resourcifybackend.controller",
-    "com.resourcify.resourcifybackend.model",
-    "com.resourcify.resourcifybackend.repository"
+    "com.resourcify.resourcify_backend.controller",
+    "com.resourcify.resourcify_backend.model",
+    "com.resourcify.resourcify_backend.repository"
 })
 public class ResourcifyBackendApplication {
 

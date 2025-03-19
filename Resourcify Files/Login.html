@@ -71,16 +71,10 @@
                 <span>Have an account? <a href="#" onclick="login()">Login</a></span>
                 <header>Sign Up</header>
             </div>
-            <div class="two-forms">
-                <div class="input-box">
-                    <input type="text" class="input-field" placeholder="First_name" id="registerFirst_name">
-                    <i class="bx bx-user"></i>
-                </div>
-                <div class="input-box">
-                    <input type="text" class="input-field" placeholder="Last_name" id="registerLast_name">
-                    <i class="bx bx-user"></i>
-                </div>
-            </div>
+            <div class="input-box">
+                <input type="text" class="input-field" placeholder="Username" id="registerUsername">
+                <i class="bx bx-user"></i>
+            </div>            
             <div class="input-box">
                 <input type="text" class="input-field" placeholder="Email" id="registerEmail">
                 <i class="bx bx-envelope"></i>
@@ -152,15 +146,16 @@
 <script>
     async function handleRegister(event) {
     event.preventDefault();
-
-    const first_name = document.getElementById("registerFirst_name").value.trim();
+    
+    const username = document.getElementById(registerUsername).value.trim();
+    const  first_name = document.getElementById("registerFirst_name").value.trim();
     const last_name = document.getElementById("registerLast_name").value.trim();
     const email = document.getElementById("registerEmail").value.trim();
     const password = document.getElementById("registerPassword").value.trim();
     const termsCheck = document.getElementById("terms-check").checked;
 
     // Validate if all fields are filled
-    if (!first_name || !last_name || !email || !password) {
+    if (!username || !first_name || !last_name || !email || !password) {
         alert("Please fill out all fields!");
         return;
     }
@@ -171,10 +166,10 @@
         return;
     }
 
-    const regData = { first_name, last_name, email, password };
+    const regData = { username, first_name, last_name, email, password };
 
     try {
-        const response = await fetch("http://localhost:8080/api/auth/register", { 
+        const response = await fetch("http://localhost:8080/auth/signup", { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(regData)
@@ -207,7 +202,7 @@ async function handleLogin(event) {
     const loginData = { username, password };
 
     try {
-        const response = await fetch("http://localhost:8080/api/auth/login", { 
+        const response = await fetch("http://localhost:8080/auth/signin", { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(loginData)

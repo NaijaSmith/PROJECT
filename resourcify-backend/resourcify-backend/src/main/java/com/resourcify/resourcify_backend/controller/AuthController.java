@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 @RestController
 @RequestMapping("/auth")
+@Service
 @CrossOrigin(origins = "http://localhost:5501") // Allow requests from any origin for now
 public class AuthController {
 
