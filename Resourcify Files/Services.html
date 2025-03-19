@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Nicolas Kariuki">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="Services.css">
     <title>Resourcify | Services</title>
@@ -12,119 +13,182 @@
     <div class="wrapper">
         <nav class="nav">
             <div class="nav-logo">
-                <p>RESOURCIFY</p>
+                <body>
+                    <img src="Pics/Resourcify logo.jpg" alt="Resourcify Logo">
+                    <span>Resourcify</span>
             </div>
             <div class="nav-menu" id="navMenu">
                 <ul>
-                    <li><a href="Homepage.html" class="link active">Home</a></li>
+                    <li><a href="Homepage.html" class="link">Home</a></li>
                     <li><a href="Services.html" class="link active-service">Services</a></li>
                     <li><a href="About.html" class="link">About</a></li>
                 </ul>
+            </div>       
+            <div class="nav-menu-btn">
+                <i class="bx bx-menu" onclick="myMenuFunction()"></i>
             </div>
-        </nav>
-
-        <div class="nav-actions">
-            <button class="btn" id="requestResourceBtn">Request Resource</button>
-            <button class="btn" id="viewItemsBtn">View Available Items</button>
-        </div>
+        </nav> 
     </div>
     <div class="content">
-        <div class="form-container" id="requestResourceForm" style="display:none;">
+        <div class="form-container" id="requestResourceForm">
             <h2>Request Resource</h2>
             <form id="requestResourceFormElement">
-                <label for="resourceName">Resource Name:</label>
-                <input type="text" id="resourceName" name="resourceName" required>
-                <label for="quantity">Quantity:</label>
+                <label for="resourceNameSelect">Resource Name:</label>
+                <select id="resourceNameSelect" name="resourceName" required>
+                    <option value="">Select a resource</option>
+                    <!-- Options will be added dynamically -->
+                </select>
+             <label for="quantity">Quantity:</label>
                 <input type="number" id="quantity" name="quantity" required>
                 <button type="submit">Submit Request</button>
             </form>
         </div>
-        <div class="table-container" id="availableItemsTable" style="display:none;">
+        <div class="table-container" id="availableItemsTable">
             <h2>Available Items</h2>
             <table>
-                <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Quantity</th>
-                        <th>Location</th>
-                    </tr>
-                </thead>
-                <tbody id="itemsTableBody">
-                    <!-- Items will be dynamically inserted here -->
-                </tbody>
+            <thead>
+                <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Location</th>
+                </tr>
+            </thead>
+            <tbody id="itemsTableBody">
+                <!-- Items will be dynamically inserted here -->
+            </tbody>
             </table>
         </div>
     </div>
+</div>
+    <footer>
+        <div class="footer-content">
+            <div class="social-media">
+            <a href="#"><i class='bx bxl-facebook-circle'></i></a>
+            <a href="#"><i class='bx bxl-twitter'></i></a>
+            <a href="#"><i class='bx bxl-instagram'></i></a>
+            <a href="#"><i class='bx bxl-linkedin-circle'></i></a>
+            <a href="#"><i class='bx bxl-whatsapp'></i></a>
+            </div>
+            <div class="contact-details">
+            <p>Email: nicolaskariuki7@gmail.com</p>
+            <p>Phone: +254 718 501 864</p>
+            </div>
+            <div class="legal">
+            <p>&copy; 2025 Resourcify. All rights reserved.</p>
+            <a href="Terms.html" class="link">Terms and Conditions</a>
+            </div>
+        </div>
+
     <script>
-        document.getElementById('requestResourceBtn').addEventListener('click', function() {
-            document.getElementById('requestResourceForm').style.display = 'block';
-            document.getElementById('availableItemsTable').style.display = 'none';
-        });
-
-        document.getElementById('viewItemsBtn').addEventListener('click', function() {
-            document.getElementById('requestResourceForm').style.display = 'none';
-            document.getElementById('availableItemsTable').style.display = 'block';
-            fetchAvailableItems();
-        });
-
-        document.getElementById('requestResourceFormElement').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const resourceName = document.getElementById('resourceName').value;
-            const quantity = document.getElementById('quantity').value;
-
-            fetch('/request-resource', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ resourceName, quantity })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert('Resource requested successfully!');
-                document.getElementById('requestResourceForm').style.display = 'none';
-                document.getElementById('availableItemsTable').style.display = 'block';
-                fetchAvailableItems();
-            })
-            .catch(error => console.error('Error requesting resource:', error));
-        });
-
-        function fetchAvailableItems() {
-            fetch('/get-available-items')
-                .then(response => response.json())
-                .then(data => {
-                    const itemsTableBody = document.getElementById('itemsTableBody');
-                    itemsTableBody.innerHTML = '';
-                    data.forEach(item => {
-                        const row = document.createElement('tr');
-
-                        const idCell = document.createElement('td');
-                        idCell.textContent = item.id;
-                        row.appendChild(idCell);
-
-                        const itemNameCell = document.createElement('td');
-                        itemNameCell.textContent = item.name;
-                        row.appendChild(itemNameCell);
-
-                        const descriptionCell = document.createElement('td');
-                        descriptionCell.textContent = item.description;
-                        row.appendChild(descriptionCell);
-
-                        const quantityCell = document.createElement('td');
-                        quantityCell.textContent = item.quantity;
-                        row.appendChild(quantityCell);
-
-                        const locationCell = document.createElement('td');
-                        locationCell.textContent = item.location;
-                        row.appendChild(locationCell);
-
-                        itemsTableBody.appendChild(row);
-                    });
-                })
-                .catch(error => console.error('Error fetching available items:', error));
+   
+        function myMenuFunction() {
+         var i = document.getElementById("navMenu");
+     
+         if(i.className === "nav-menu") {
+             i.className += " responsive";
+         } else {
+             i.className = "nav-menu";
+         }
         }
+      
+     </script>
+    <script>
+        document.getElementById('requestResourceFormElement').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+    const resourceName = document.getElementById('resourceNameSelect').value;
+    const quantity = document.getElementById('quantity').value;
+
+    if (!resourceName) {
+        alert('Please select a resource!');
+        return;
+    }
+
+    fetch('http://localhost:8080/request-resource', {  // Backend POST endpoint
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ resourceName, quantity })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json(); // or response.text() if your backend returns text
+    })
+    .then(data => {
+        alert('Resource requested successfully!');
+        fetchAvailableItems(); // Refresh both the dropdown and table
+        document.getElementById('availableItemsTable').scrollIntoView({ behavior: 'smooth' });
+    })
+    .catch(error => {
+        console.error('Error requesting resource:', error);
+        alert('Failed to request resource!');
+    });
+});
+    
+    function fetchAvailableItems() {
+    fetch('http://localhost:8080/get-available-items')  // <-- Your backend endpoint
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const itemsTableBody = document.getElementById('itemsTableBody');
+            const resourceNameSelect = document.getElementById('resourceNameSelect');
+
+            // Clear both table and dropdown options
+            itemsTableBody.innerHTML = '';
+            resourceNameSelect.innerHTML = '<option value="">Select a resource</option>';
+
+            data.forEach(item => {
+                // Populate table
+                const row = document.createElement('tr');
+
+                const idCell = document.createElement('td');
+                idCell.textContent = item.id;
+                row.appendChild(idCell);
+
+                const itemNameCell = document.createElement('td');
+                itemNameCell.textContent = item.name;
+                row.appendChild(itemNameCell);
+
+                const descriptionCell = document.createElement('td');
+                descriptionCell.textContent = item.description;
+                row.appendChild(descriptionCell);
+
+                const quantityCell = document.createElement('td');
+                quantityCell.textContent = item.quantity;
+                row.appendChild(quantityCell);
+
+                const locationCell = document.createElement('td');
+                locationCell.textContent = item.location;
+                row.appendChild(locationCell);
+
+                itemsTableBody.appendChild(row);
+
+                // Populate dropdown option
+                const option = document.createElement('option');
+                option.value = item.name; // or item.id depending on your backend
+                option.textContent = `${item.name} (${item.quantity} available)`;
+                resourceNameSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching available items:', error);
+            alert('Failed to load available items!');
+        });
+}
+    
+    // Fetch items when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchAvailableItems();
+    });    
     </script>
 </body>
 </html>

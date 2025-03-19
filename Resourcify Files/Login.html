@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Nicolas Kariuki">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="style.css">
     <title>Resourcify | Login & Registration</title>
@@ -13,7 +14,8 @@
  <div class="wrapper">
     <nav class="nav">
         <div class="nav-logo">
-            <p>RESOURCIFY</p>
+            <img src="Pics/Resourcify logo.jpg" alt="Resourcify Logo">
+            <span>Resourcify</span>            
         </div>
         <div class="nav-menu" id="navMenu">
             <ul>
@@ -148,16 +150,64 @@
 
 </script>
 <script>
+    async function handleRegister(event) {
+    event.preventDefault();
+
+    const first_name = document.getElementById("registerFirst_name").value.trim();
+    const last_name = document.getElementById("registerLast_name").value.trim();
+    const email = document.getElementById("registerEmail").value.trim();
+    const password = document.getElementById("registerPassword").value.trim();
+    const termsCheck = document.getElementById("terms-check").checked;
+
+    // Validate if all fields are filled
+    if (!first_name || !last_name || !email || !password) {
+        alert("Please fill out all fields!");
+        return;
+    }
+
+    // Validate if terms checkbox is checked
+    if (!termsCheck) {
+        alert("You must agree to the Terms and Conditions before registering!");
+        return;
+    }
+
+    const regData = { first_name, last_name, email, password };
+
+    try {
+        const response = await fetch("http://localhost:8080/api/auth/register", { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(regData)
+        });
+
+        const result = await response.text();
+        alert(result);
+
+        if (result.toLowerCase().includes("successful")) {
+            window.location.href = "Homepage.html";
+        }
+
+    } catch (error) {
+        console.error('Error during registration:', error);
+        alert('An error occurred during registration.');
+    }
+}
+
 async function handleLogin(event) {
     event.preventDefault();
 
-    const username = document.getElementById("loginUsername").value;
-    const password = document.getElementById("loginPassword").value;
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+
+    if (!username || !password) {
+        alert("Please enter both username/email and password!");
+        return;
+    }
 
     const loginData = { username, password };
 
     try {
-        const response = await fetch("/signin", { 
+        const response = await fetch("http://localhost:8080/api/auth/login", { 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(loginData)
@@ -166,8 +216,7 @@ async function handleLogin(event) {
         const result = await response.text();
         alert(result);
 
-        // If login is successful, redirect to Homepage.html
-        if (result.includes("successful")) {
+        if (result.toLowerCase().includes("successful")) {
             window.location.href = "Homepage.html";
         }
 
@@ -177,43 +226,6 @@ async function handleLogin(event) {
     }
 }
 
-async function handleRegister(event) {
-    event.preventDefault();
-
-    const first_name = document.getElementById("registerFirst_name").value;
-    const last_name = document.getElementById("registerLast_name").value;
-    const email = document.getElementById("registerEmail").value;
-    const password = document.getElementById("registerPassword").value;
-
-    const termsCheck = document.getElementById("terms-check").checked;
-
-    if (!termsCheck) {
-        alert("Please agree to the Terms and Conditions.");
-        return;
-    }
-
-    const regData = { first_name, last_name, email, password, agreedToTerms: true };
-
-    try {
-        const response = await fetch("http://localhost:8080/signup", { 
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(regData)
-        });
-
-        const result = await response.text();
-        alert(result);
-
-        // If signup is successful, redirect to Homepage.html
-        if (result.includes("successful")) {
-            window.location.href = "Homepage.html";
-        }
-
-    } catch (error) {
-        console.error('Error during registration:', error);
-        alert('An error occurred during registration.');
-    }
-}
   </script>
   
 </body>

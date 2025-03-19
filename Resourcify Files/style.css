@@ -37,6 +37,17 @@ body{
     font-size: 25px;
     font-weight: 600;
 }
+.nav-logo span {
+    font-size: 1.5rem;
+    color: #00a86b;
+    margin-left: 10px;
+    font-weight: bold;
+  }
+.nav-logo img {
+    height: 50px; 
+    width: auto;
+    display: inline-block;
+}
 .nav-menu{
     display: flex;
     justify-content: center;
