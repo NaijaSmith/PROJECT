@@ -4,14 +4,13 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
-
 public class User {
-     
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(unique = true, nullable = false)    
+    @Column(unique = true, nullable = false)
     private String username;
 
     @Column(unique = true, nullable = false)
@@ -24,13 +23,12 @@ public class User {
     public User() {
     }
 
-    // Getters and Setters
-    
+    // ✅ Getters and Setters
     public Long getUserId() {
         return userId;
     }
 
-    public void setId(Long UserId) {
+    public void setUserId(Long userId) {  // ✅ match the parameter to the field!
         this.userId = userId;
     }
 
@@ -57,5 +55,4 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-
 }
