@@ -46,5 +46,10 @@ public class AuthService {
         throw new UnsupportedOperationException("Unimplemented method 'getPasswordEncoder'");
     }
 
+    public boolean authenticate(String username, String rawPassword) {
+        User user = findByUsername(username);
+        return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+    
 }
 
