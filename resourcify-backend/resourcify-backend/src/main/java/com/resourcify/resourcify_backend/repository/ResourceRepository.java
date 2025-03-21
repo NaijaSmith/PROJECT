@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface ResourceRepository extends JpaRepository<ResourceItem, Long> {
 
-    @Query("SELECT DISTINCT r.location FROM ResourceItem r")
+    @Query("SELECT DISTINCT r.location FROM Resource r")
     List<String> findAllDistinctLocations();
 }

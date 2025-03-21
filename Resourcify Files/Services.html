@@ -7,7 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="Nicolas Kariuki" />
   <title>Resourcify | Services</title>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDTWXuoQYmRucYEDMUvnF565oe-d7Yn3A0&callback=initMap" async defer></script>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="Services.css" />
 </head>
@@ -68,6 +67,8 @@
               <th>Description</th>
               <th>Quantity</th>
               <th>Location</th>
+              <th>Latitude</th>
+              <th>Longitude</th>
             </tr>
           </thead>
           <tbody id="itemsTableBody"></tbody>
@@ -110,6 +111,12 @@
   <!-- SockJS & STOMP for WebSocket -->
   <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+  <script async
+    defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDTWXuoQYmRucYEDMUvnF565oe-d7Yn3A0&callback=initMap">
+  </script>
+
+
 
   <script>
     let map;
@@ -200,6 +207,8 @@
             <td>${resource.description}</td>
             <td>${resource.quantity}</td>
             <td>${resource.location}</td>
+            <td>${resource.latitude}</td>
+            <td>${resource.longitude}</td>
           </tr>`);
 
         const option = document.createElement('option');
@@ -229,6 +238,7 @@
               <p>${resource.description}</p>
               <p>Quantity: ${resource.quantity}</p>
               <p>Location: ${resource.location}</p>
+              <p>Coordinates: ${resource.latitude}, ${resource.longitude}</p>
             </div>`
         });
 
