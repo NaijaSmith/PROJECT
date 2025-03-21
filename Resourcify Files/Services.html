@@ -162,7 +162,7 @@
 
     const fetchAvailableItems = async () => {
       try {
-        const res = await fetch('http://localhost:8080/get-available-items');
+        const res = await fetch('http://localhost:8080/api/get-available-items');
         if (!res.ok) throw new Error('Failed to fetch items.');
 
         const resources = await res.json();
@@ -176,8 +176,8 @@
 
     const loadLocations = async () => {
       try {
-        const res = await fetch('http://localhost:8080/locations');
-        if (!res.ok) throw new Error('Failed to fetch locations.');
+        const res = await fetch('http://localhost:8080/api/location');
+        if (!res.ok) throw new Error('Failed to fetch location.');
 
         const locations = await res.json();
         const locationSelect = document.getElementById('location');
@@ -263,7 +263,7 @@
       }
 
       try {
-        const res = await fetch('http://localhost:8080/request-resource', {
+        const res = await fetch('http://localhost:8080/api/request-resource', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ resourceName, location, quantity })

@@ -3,7 +3,7 @@ package com.resourcify.resourcify_backend.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "resources") 
+@Table(name = "resources")
 public class ResourceItem {
 
     @Id
@@ -14,8 +14,8 @@ public class ResourceItem {
     private String description;
     private int quantity;
     private String location;
-    private Double latitude; 
-    private Double longitude; 
+    private Double latitude;
+    private Double longitude;
 
     // Constructors
     public ResourceItem() {}
@@ -30,7 +30,7 @@ public class ResourceItem {
         this.longitude = longitude;
     }
 
-    // Getters and setters
+    // Getters and Setters
     public int getId() { return id; }
 
     public String getName() { return name; }
