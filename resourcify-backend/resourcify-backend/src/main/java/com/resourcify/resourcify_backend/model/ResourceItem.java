@@ -14,9 +14,8 @@ public class ResourceItem {
     private String description;
     private int quantity;
     private String location;
-
-    private Double latitude;  // New field
-    private Double longitude; // New field
+    private Double latitude; 
+    private Double longitude; 
 
     // Constructors
     public ResourceItem() {}
