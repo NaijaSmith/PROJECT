@@ -18,13 +18,17 @@ public class ResourceController {
 
     @GetMapping("/get-available-items")
     public ResponseEntity<List<ResourceItem>> getAvailableItems() {
+        System.out.println("Fetching available items...");
         List<ResourceItem> items = resourceRepository.findAll();
+        System.out.println("Fetched items: " + items.size());
         return ResponseEntity.ok(items);
     }
 
     @GetMapping("/location")
     public ResponseEntity<List<String>> getLocation() {
+        System.out.println("Fetching locations...");    
         List<String> location = resourceRepository.findAllDistinctLocations();
+        System.out.println("Fetched locations: " + location.size());
         return ResponseEntity.ok(location);
     }
 
