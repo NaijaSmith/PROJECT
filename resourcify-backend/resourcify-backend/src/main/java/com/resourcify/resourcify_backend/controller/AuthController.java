@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @RestController
 @RequestMapping("/auth")
 @Service
-@CrossOrigin(origins = "http://localhost:5501") // Allow requests from any origin for now
+@CrossOrigin(origins = "http://127.0.0.1:5501")
 public class AuthController {
 
     @Autowired

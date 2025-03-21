@@ -8,7 +8,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long Id;
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -24,12 +24,12 @@ public class User {
     }
 
     // ✅ Getters and Setters
-    public Long getUserId() {
-        return userId;
+    public Long getId() {
+        return Id;
     }
 
     public void setUserId(Long userId) {  // ✅ match the parameter to the field!
-        this.userId = userId;
+        this.Id = userId;
     }
 
     public String getUsername() {

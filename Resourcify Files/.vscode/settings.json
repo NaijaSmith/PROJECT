@@ -1,4 +1,7 @@
 {
     "liveServer.settings.port": 5501,
-    "DockerRun.DisableDockerrc": true
+    "DockerRun.DisableDockerrc": true,
+    "cSpell.words": [
+        "Kariuki"
+    ]
 }

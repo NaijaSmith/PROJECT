@@ -162,6 +162,13 @@
             const password = document.getElementById("registerPassword").value.trim();
             const termsCheck = document.getElementById("terms-check").checked;
 
+            const fullNameRegex = /^[a-zA-Z]+ [a-zA-Z]+$/;
+
+            if (!fullNameRegex.test(username)) {
+                alert("Please enter a valid full name with letters only (e.g., John Doe).");
+                return;
+            }
+
             if (!username || !email || !password) {
                 alert("Please fill out all fields!");
                 return;
@@ -185,7 +192,7 @@
                 alert(result);
 
                 if (result.toLowerCase().includes("successful")) {
-                    window.location.href = "Homepage.html";
+                    window.location.href = "Home.html";
                 }
 
             } catch (error) {
@@ -221,7 +228,7 @@
                 alert(result);
 
                 if (result.toLowerCase().includes("successful")) {
-                    window.location.href = "Homepage.html";
+                    window.location.href = "Home.html";
                 }
 
             } catch (error) {

@@ -1,194 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Nicolas Kariuki">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="Services.css">
-    <title>Resourcify | Services</title>
-</head>
-<body>
-    <div class="wrapper">
-        <nav class="nav">
-            <div class="nav-logo">
-                <body>
-                    <img src="Pics/Resourcify logo.jpg" alt="Resourcify Logo">
-                    <span>Resourcify</span>
-            </div>
-            <div class="nav-menu" id="navMenu">
-                <ul>
-                    <li><a href="Homepage.html" class="link">Home</a></li>
-                    <li><a href="Services.html" class="link active-service">Services</a></li>
-                    <li><a href="About.html" class="link">About</a></li>
-                </ul>
-            </div>       
-            <div class="nav-menu-btn">
-                <i class="bx bx-menu" onclick="myMenuFunction()"></i>
-            </div>
-        </nav> 
-    </div>
-    <div class="content">
-        <div class="form-container" id="requestResourceForm">
-            <h2>Request Resource</h2>
-            <form id="requestResourceFormElement">
-                <label for="resourceNameSelect">Resource Name:</label>
-                <select id="resourceNameSelect" name="resourceName" required>
-                    <option value="">Select a resource</option>
-                    <!-- Options will be added dynamically -->
-                </select>
-             <label for="quantity">Quantity:</label>
-                <input type="number" id="quantity" name="quantity" required>
-                <button type="submit">Submit Request</button>
-            </form>
-        </div>
-        <div class="table-container" id="availableItemsTable">
-            <h2>Available Items</h2>
-            <table>
-            <thead>
-                <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Quantity</th>
-                <th>Location</th>
-                </tr>
-            </thead>
-            <tbody id="itemsTableBody">
-                <!-- Items will be dynamically inserted here -->
-            </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-    <footer>
-        <div class="footer-content">
-            <div class="social-media">
-            <a href="#"><i class='bx bxl-facebook-circle'></i></a>
-            <a href="#"><i class='bx bxl-twitter'></i></a>
-            <a href="#"><i class='bx bxl-instagram'></i></a>
-            <a href="#"><i class='bx bxl-linkedin-circle'></i></a>
-            <a href="#"><i class='bx bxl-whatsapp'></i></a>
-            </div>
-            <div class="contact-details">
-            <p>Email: nicolaskariuki7@gmail.com</p>
-            <p>Phone: +254 718 501 864</p>
-            </div>
-            <div class="legal">
-            <p>&copy; 2025 Resourcify. All rights reserved.</p>
-            <a href="Terms.html" class="link">Terms and Conditions</a>
-            </div>
-        </div>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Nicolas Kariuki" />
+  
+  <title>Resourcify | Services</title>
 
-    <script>
-   
-        function myMenuFunction() {
-         var i = document.getElementById("navMenu");
-     
-         if(i.className === "nav-menu") {
-             i.className += " responsive";
-         } else {
-             i.className = "nav-menu";
-         }
-        }
-      
-     </script>
-    <script>
-        document.getElementById('requestResourceFormElement').addEventListener('submit', function(event) {
-        event.preventDefault();
+  <!-- Google Maps API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
 
-    const resourceName = document.getElementById('resourceNameSelect').value;
-    const quantity = document.getElementById('quantity').value;
+  <!-- External Icons & CSS -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="Services.css" />
 
-    if (!resourceName) {
-        alert('Please select a resource!');
-        return;
+  <!-- Inline CSS (move to Services.css ideally) -->
+  <style>
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: top 0.3s ease-in-out;
     }
 
-    fetch('http://localhost:8080/request-resource', {  // Backend POST endpoint
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ resourceName, quantity })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json(); // or response.text() if your backend returns text
-    })
-    .then(data => {
-        alert('Resource requested successfully!');
-        fetchAvailableItems(); // Refresh both the dropdown and table
-        document.getElementById('availableItemsTable').scrollIntoView({ behavior: 'smooth' });
-    })
-    .catch(error => {
-        console.error('Error requesting resource:', error);
-        alert('Failed to request resource!');
-    });
-});
-    
-    function fetchAvailableItems() {
-    fetch('http://localhost:8080/get-available-items')  // <-- Your backend endpoint
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const itemsTableBody = document.getElementById('itemsTableBody');
-            const resourceNameSelect = document.getElementById('resourceNameSelect');
+    body {
+      padding-top: 80px;
+    }
 
-            // Clear both table and dropdown options
-            itemsTableBody.innerHTML = '';
-            resourceNameSelect.innerHTML = '<option value="">Select a resource</option>';
+    #map {
+      height: 500px;
+      width: 100%;
+      margin-top: 30px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
 
-            data.forEach(item => {
-                // Populate table
-                const row = document.createElement('tr');
+<body>
 
-                const idCell = document.createElement('td');
-                idCell.textContent = item.id;
-                row.appendChild(idCell);
+  <!-- NAVIGATION -->
+  <header class="wrapper">
+    <nav class="nav">
+      <div class="nav-logo">
+        <img src="Pics/Resourcify logo.jpg" alt="Resourcify Logo" />
+        <span>Resourcify</span>
+      </div>
 
-                const itemNameCell = document.createElement('td');
-                itemNameCell.textContent = item.name;
-                row.appendChild(itemNameCell);
+      <div class="nav-menu" id="navMenu">
+        <ul>
+          <li><a href="Homepage.html" class="link">Home</a></li>
+          <li><a href="Services.html" class="link active-service">Services</a></li>
+          <li><a href="About.html" class="link">About</a></li>
+        </ul>
+      </div>
 
-                const descriptionCell = document.createElement('td');
-                descriptionCell.textContent = item.description;
-                row.appendChild(descriptionCell);
+      <div class="nav-menu-btn">
+        <i class="bx bx-menu" onclick="toggleMenu()"></i>
+      </div>
+    </nav>
+  </header>
 
-                const quantityCell = document.createElement('td');
-                quantityCell.textContent = item.quantity;
-                row.appendChild(quantityCell);
+  <!-- MAIN CONTENT -->
+  <main class="content">
 
-                const locationCell = document.createElement('td');
-                locationCell.textContent = item.location;
-                row.appendChild(locationCell);
+    <!-- REQUEST RESOURCE FORM -->
+    <section class="form-container">
+      <h2>Request Resource</h2>
+      <form id="requestResourceForm">
+        <label for="resourceNameSelect">Resource Name:</label>
+        <select id="resourceNameSelect" required></select>
 
-                itemsTableBody.appendChild(row);
+        <label for="location">Select Location:</label>
+        <select id="location" required></select>
 
-                // Populate dropdown option
-                const option = document.createElement('option');
-                option.value = item.name; // or item.id depending on your backend
-                option.textContent = `${item.name} (${item.quantity} available)`;
-                resourceNameSelect.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching available items:', error);
-            alert('Failed to load available items!');
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" min="1" required />
+
+        <button type="submit">Submit Request</button>
+      </form>
+    </section>
+
+    <!-- AVAILABLE ITEMS TABLE -->
+    <section class="table-container">
+      <h2>Available Items</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- GOOGLE MAP -->
+    <section>
+      <h2>Resource Distribution Map</h2>
+      <div id="map"></div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="social-media">
+        <a href="#"><i class='bx bxl-facebook-circle'></i></a>
+        <a href="#"><i class='bx bxl-twitter'></i></a>
+        <a href="#"><i class='bx bxl-instagram'></i></a>
+        <a href="#"><i class='bx bxl-linkedin-circle'></i></a>
+        <a href="#"><i class='bx bxl-whatsapp'></i></a>
+      </div>
+
+      <div class="contact-details">
+        <p>Email: nicolaskariuki7@gmail.com</p>
+        <p>Phone: +254 718 501 864</p>
+      </div>
+
+      <div class="legal">
+        <p>&copy; 2025 Resourcify. All rights reserved.</p>
+        <a href="Terms.html" class="link">Terms and Conditions</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    let map;
+    let markers = [];
+    let prevScrollPos = window.pageYOffset;
+
+    // Toggle mobile menu
+    const toggleMenu = () => {
+      document.getElementById("navMenu").classList.toggle("responsive");
+    };
+
+    // Hide/show navbar on scroll
+    window.onscroll = () => {
+      const currentScrollPos = window.pageYOffset;
+      document.querySelector('.nav').style.top = prevScrollPos > currentScrollPos ? "0" : "-100px";
+      prevScrollPos = currentScrollPos;
+    };
+
+    // Initialize Google Map
+    const initMap = () => {
+      const centerCoords = { lat: -1.286389, lng: 36.817223 }; // Nairobi
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 6,
+        center: centerCoords,
+        styles: [
+          { "featureType": "all", "elementType": "labels.text", "stylers": [{ "color": "#878787" }] },
+          { "featureType": "all", "elementType": "labels.text.stroke", "stylers": [{ "visibility": "off" }] },
+          { "featureType": "landscape", "elementType": "all", "stylers": [{ "color": "#f9f5ed" }] },
+          { "featureType": "road.highway", "elementType": "all", "stylers": [{ "color": "#f5f5f5" }] },
+          { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{ "color": "#c9c9c9" }] },
+          { "featureType": "water", "elementType": "all", "stylers": [{ "color": "#aee0f4" }] }
+        ]
+      });
+
+      fetchAvailableItems();
+      loadLocations();
+    };
+
+    // Update Map Markers
+    const updateMapMarkers = (resources) => {
+      markers.forEach(marker => marker.setMap(null));
+      markers = [];
+
+      resources.forEach(resource => {
+        if (!resource.latitude || !resource.longitude) return;
+
+        const marker = new google.maps.Marker({
+          position: { lat: resource.latitude, lng: resource.longitude },
+          map,
+          title: `${resource.name} (${resource.quantity} available)`
         });
-}
-    
-    // Fetch items when the page loads
-    document.addEventListener('DOMContentLoaded', function() {
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `
+            <div>
+              <h3>${resource.name}</h3>
+              <p>${resource.description}</p>
+              <p>Quantity: ${resource.quantity}</p>
+              <p>Location: ${resource.location}</p>
+            </div>`
+        });
+
+        marker.addListener("click", () => infoWindow.open(map, marker));
+        markers.push(marker);
+      });
+    };
+
+    // Fetch Available Items
+    const fetchAvailableItems = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/get-available-items');
+        if (!res.ok) throw new Error('Failed to fetch items.');
+
+        const resources = await res.json();
+        const tableBody = document.getElementById('itemsTableBody');
+        const resourceNameSelect = document.getElementById('resourceNameSelect');
+
+        tableBody.innerHTML = '';
+        resourceNameSelect.innerHTML = '<option value="">Select a resource</option>';
+
+        resources.forEach(resource => {
+          tableBody.insertAdjacentHTML('beforeend', `
+            <tr>
+              <td>${resource.id}</td>
+              <td>${resource.name}</td>
+              <td>${resource.description}</td>
+              <td>${resource.quantity}</td>
+              <td>${resource.location}</td>
+            </tr>`);
+
+          const option = document.createElement('option');
+          option.value = resource.name;
+          option.textContent = `${resource.name} (${resource.quantity} available)`;
+          resourceNameSelect.appendChild(option);
+        });
+
+        updateMapMarkers(resources);
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    // Load Locations
+    const loadLocations = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/locations');
+        if (!res.ok) throw new Error('Failed to fetch locations.');
+
+        const locations = await res.json();
+        const locationSelect = document.getElementById('location');
+
+        locationSelect.innerHTML = '<option value="">Select a location</option>';
+        locations.forEach(loc => {
+          const option = document.createElement('option');
+          option.value = loc;
+          option.textContent = loc;
+          locationSelect.appendChild(option);
+        });
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    // Handle Resource Request Form Submission
+    document.getElementById('requestResourceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const resourceName = document.getElementById('resourceNameSelect').value;
+      const location = document.getElementById('location').value;
+      const quantity = document.getElementById('quantity').value;
+
+      if (!resourceName || !location) {
+        alert('Please select both a resource and a location!');
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:8080/request-resource', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resourceName, location, quantity })
+        });
+
+        if (!res.ok) throw new Error('Request failed.');
+
+        alert('Resource requested successfully!');
         fetchAvailableItems();
-    });    
-    </script>
+
+      } catch (error) {
+        console.error(error);
+        alert('Failed to request resource.');
+      }
+    });
+  </script>
+
 </body>
 </html>
