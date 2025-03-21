@@ -32,7 +32,6 @@ public class ResourceRequest {
     }
 
     public Object getLocation() {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getLocation'");
     }
 }

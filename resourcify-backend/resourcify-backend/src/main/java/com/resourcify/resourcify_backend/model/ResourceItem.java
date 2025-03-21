@@ -3,7 +3,7 @@ package com.resourcify.resourcify_backend.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "resources") // or whatever your table is named
+@Table(name = "resources") 
 public class ResourceItem {
 
     @Id

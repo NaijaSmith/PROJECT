@@ -6,38 +6,10 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="Nicolas Kariuki" />
-  
   <title>Resourcify | Services</title>
-
-  <!-- Google Maps API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
-
-  <!-- External Icons & CSS -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDTWXuoQYmRucYEDMUvnF565oe-d7Yn3A0&callback=initMap" async defer></script>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="Services.css" />
-
-  <!-- Inline CSS (move to Services.css ideally) -->
-  <style>
-    .nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1000;
-      transition: top 0.3s ease-in-out;
-    }
-
-    body {
-      padding-top: 80px;
-    }
-
-    #map {
-      height: 500px;
-      width: 100%;
-      margin-top: 30px;
-      border-radius: 10px;
-    }
-  </style>
 </head>
 
 <body>
@@ -134,27 +106,32 @@
     </div>
   </footer>
 
-  <!-- JAVASCRIPT -->
+  <!-- SCRIPTS -->
+  <!-- SockJS & STOMP for WebSocket -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
   <script>
     let map;
     let markers = [];
-    let prevScrollPos = window.pageYOffset;
+    let stompClient = null;
 
-    // Toggle mobile menu
     const toggleMenu = () => {
       document.getElementById("navMenu").classList.toggle("responsive");
     };
 
-    // Hide/show navbar on scroll
+    // Scroll navbar hide/show
+    let prevScrollPos = window.pageYOffset;
     window.onscroll = () => {
       const currentScrollPos = window.pageYOffset;
       document.querySelector('.nav').style.top = prevScrollPos > currentScrollPos ? "0" : "-100px";
       prevScrollPos = currentScrollPos;
     };
 
-    // Initialize Google Map
-    const initMap = () => {
+    // Initialize Google Map (global for callback)
+    window.initMap = () => {
       const centerCoords = { lat: -1.286389, lng: 36.817223 }; // Nairobi
+
       map = new google.maps.Map(document.getElementById("map"), {
         zoom: 6,
         center: centerCoords,
@@ -170,9 +147,68 @@
 
       fetchAvailableItems();
       loadLocations();
+      connectWebSocket(); // Connect after map loads
     };
 
-    // Update Map Markers
+    const fetchAvailableItems = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/get-available-items');
+        if (!res.ok) throw new Error('Failed to fetch items.');
+
+        const resources = await res.json();
+        updateResourcesTable(resources);
+        updateMapMarkers(resources);
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const loadLocations = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/locations');
+        if (!res.ok) throw new Error('Failed to fetch locations.');
+
+        const locations = await res.json();
+        const locationSelect = document.getElementById('location');
+
+        locationSelect.innerHTML = '<option value="">Select a location</option>';
+        locations.forEach(loc => {
+          const option = document.createElement('option');
+          option.value = loc;
+          option.textContent = loc;
+          locationSelect.appendChild(option);
+        });
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const updateResourcesTable = (resources) => {
+      const tableBody = document.getElementById('itemsTableBody');
+      const resourceNameSelect = document.getElementById('resourceNameSelect');
+
+      tableBody.innerHTML = '';
+      resourceNameSelect.innerHTML = '<option value="">Select a resource</option>';
+
+      resources.forEach(resource => {
+        tableBody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td>${resource.id}</td>
+            <td>${resource.name}</td>
+            <td>${resource.description}</td>
+            <td>${resource.quantity}</td>
+            <td>${resource.location}</td>
+          </tr>`);
+
+        const option = document.createElement('option');
+        option.value = resource.name;
+        option.textContent = `${resource.name} (${resource.quantity} available)`;
+        resourceNameSelect.appendChild(option);
+      });
+    };
+
     const updateMapMarkers = (resources) => {
       markers.forEach(marker => marker.setMap(null));
       markers = [];
@@ -201,65 +237,6 @@
       });
     };
 
-    // Fetch Available Items
-    const fetchAvailableItems = async () => {
-      try {
-        const res = await fetch('http://localhost:8080/get-available-items');
-        if (!res.ok) throw new Error('Failed to fetch items.');
-
-        const resources = await res.json();
-        const tableBody = document.getElementById('itemsTableBody');
-        const resourceNameSelect = document.getElementById('resourceNameSelect');
-
-        tableBody.innerHTML = '';
-        resourceNameSelect.innerHTML = '<option value="">Select a resource</option>';
-
-        resources.forEach(resource => {
-          tableBody.insertAdjacentHTML('beforeend', `
-            <tr>
-              <td>${resource.id}</td>
-              <td>${resource.name}</td>
-              <td>${resource.description}</td>
-              <td>${resource.quantity}</td>
-              <td>${resource.location}</td>
-            </tr>`);
-
-          const option = document.createElement('option');
-          option.value = resource.name;
-          option.textContent = `${resource.name} (${resource.quantity} available)`;
-          resourceNameSelect.appendChild(option);
-        });
-
-        updateMapMarkers(resources);
-
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    // Load Locations
-    const loadLocations = async () => {
-      try {
-        const res = await fetch('http://localhost:8080/locations');
-        if (!res.ok) throw new Error('Failed to fetch locations.');
-
-        const locations = await res.json();
-        const locationSelect = document.getElementById('location');
-
-        locationSelect.innerHTML = '<option value="">Select a location</option>';
-        locations.forEach(loc => {
-          const option = document.createElement('option');
-          option.value = loc;
-          option.textContent = loc;
-          locationSelect.appendChild(option);
-        });
-
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    // Handle Resource Request Form Submission
     document.getElementById('requestResourceForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -283,13 +260,27 @@
 
         alert('Resource requested successfully!');
         fetchAvailableItems();
-
       } catch (error) {
         console.error(error);
         alert('Failed to request resource.');
       }
     });
+
+    const connectWebSocket = () => {
+      const socket = new SockJS('http://localhost:8080/ws');
+      stompClient = Stomp.over(socket);
+
+      stompClient.connect({}, () => {
+        console.log('Connected to WebSocket!');
+        stompClient.subscribe('/topic/messages', (message) => {
+          console.log('WS Message:', message.body);
+        });
+      }, (error) => {
+        console.error('WebSocket connection error:', error);
+      });
+    };
   </script>
 
 </body>
+
 </html>
