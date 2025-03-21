@@ -23,10 +23,10 @@ public class ResourceController {
         return ResponseEntity.ok(items);
     }
 
-    @GetMapping("/locations")
-    public ResponseEntity<List<String>> getLocations() {
-        List<String> locations = resourceRepository.findAllDistinctLocations();
-        return ResponseEntity.ok(locations);
+    @GetMapping("/location")
+    public ResponseEntity<List<String>> getLocation() {
+        List<String> location = resourceRepository.findAllDistinctLocations();
+        return ResponseEntity.ok(location);
     }
 
     @PostMapping("/request-resource")

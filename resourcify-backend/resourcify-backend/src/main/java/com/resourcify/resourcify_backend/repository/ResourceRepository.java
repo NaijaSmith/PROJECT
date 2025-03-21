@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface ResourceRepository extends JpaRepository<ResourceItem, Long> {
+public interface ResourceRepository extends JpaRepository<ResourceItem, Integer> {
 
     @Query("SELECT DISTINCT r.location FROM ResourceItem r")
     List<String> findAllDistinctLocations();

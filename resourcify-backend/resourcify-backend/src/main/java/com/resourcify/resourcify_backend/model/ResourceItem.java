@@ -8,7 +8,7 @@ public class ResourceItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     private String name;
     private String description;
@@ -20,7 +20,8 @@ public class ResourceItem {
     // Constructors
     public ResourceItem() {}
 
-    public ResourceItem(String name, String description, int quantity, String location, Double latitude, Double longitude) {
+    public ResourceItem(int id, String name, String description, int quantity, String location, Double latitude, Double longitude) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.quantity = quantity;
@@ -30,7 +31,7 @@ public class ResourceItem {
     }
 
     // Getters and setters
-    public Long getId() { return id; }
+    public int getId() { return id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
