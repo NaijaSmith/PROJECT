@@ -260,6 +260,7 @@ section{
         background: rgba(255, 255, 255, 0.15);
     }
 }
+
 @media only screen and (max-width: 2096px) {
     .nav-logo img {
         height: 40px;

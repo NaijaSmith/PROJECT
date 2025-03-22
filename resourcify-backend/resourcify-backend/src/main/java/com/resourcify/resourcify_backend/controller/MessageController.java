@@ -14,4 +14,3 @@ public class MessageController {
         return "Server received: " + message;
     }
 }
-// Compare this snippet from src/main/resources/application.properties:

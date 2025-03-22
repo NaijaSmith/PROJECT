@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Nicolas Kariuki">
+  <title>Resourcify | Dashboard</title>
+
+  <!-- ICONS & FAVICON -->
+  <link rel="icon" type="image/x-icon" href="favicon_io/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+
+  <!-- STYLESHEETS -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+
+<body>
+  <!-- NAVIGATION -->
+  <header class="wrapper">
+    <nav class="nav">
+      <div class="nav-logo">
+        <img src="Pics/Resourcify logo.jpg" alt="Resourcify Logo">
+        <span>Resourcify</span>
+      </div>
+      <div class="nav-menu" id="navMenu">
+        <ul>
+          <li><a href="Homepage.html" class="link">Home</a></li>
+          <li><a href="Services.html" class="link">Services</a></li>
+          <li><a href="Dashboard.html" class="link active-dashboard">Dashboard</a></li>
+          <li><a href="About.html" class="link">About</a></li>
+        </ul>
+      </div>
+      <div class="nav-menu-btn">
+        <i class="bx bx-menu" onclick="toggleMenu()"></i>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="dashboard-content">
+    <!-- USER WELCOME -->
+    <section class="user-welcome">
+      <h2>Welcome Back!</h2>
+      <p>Monitor and manage your resource requests efficiently.</p>
+    </section>
+
+    <!-- OVERVIEW CARDS -->
+    <section class="overview-cards">
+      <div class="card">
+        <h3>Total Resources</h3>
+        <p id="totalResources">Loading...</p>
+      </div>
+      <div class="card">
+        <h3>Requests Made</h3>
+        <p id="requestsMade">Loading...</p>
+      </div>
+      <div class="card">
+        <h3>Fulfilled Requests</h3>
+        <p id="fulfilledRequests">Loading...</p>
+      </div>
+      <div class="card">
+        <h3>Pending Requests</h3>
+        <p id="pendingRequests">Loading...</p>
+      </div>
+    </section>
+
+    <!-- RECENT REQUESTS TABLE -->
+    <section class="requests-table">
+      <h2>Recent Requests</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Resource</th>
+              <th>Quantity</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="requestsTableBody">
+            <tr><td colspan="5">Loading requests...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <section class="quick-actions">
+      <button onclick="redirectToRequestPage()">Submit New Request</button>
+      <button onclick="redirectToServicesPage()">View Resources</button>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="social-media">
+        <a href="#"><i class='bx bxl-facebook-circle'></i></a>
+        <a href="#"><i class='bx bxl-twitter'></i></a>
+        <a href="#"><i class='bx bxl-instagram'></i></a>
+        <a href="#"><i class='bx bxl-linkedin-circle'></i></a>
+        <a href="#"><i class='bx bxl-whatsapp'></i></a>
+      </div>
+      <div class="contact-details">
+        <p>Email: nicolaskariuki7@gmail.com</p>
+        <p>Phone: +254 718 501 864</p>
+      </div>
+      <div class="legal">
+        <p>&copy; 2025 Resourcify. All rights reserved.</p>
+        <a href="Terms.html" class="link">Terms and Conditions</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+  <script>
+    const toggleMenu = () => {
+      document.getElementById("navMenu").classList.toggle("responsive");
+    };
+
+    const redirectToRequestPage = () => {
+      window.location.href = "Services.html";
+    };
+
+    const redirectToServicesPage = () => {
+      window.location.href = "Services.html";
+    };
+
+    // Navbar hide/show on scroll
+    let prevScrollPos = window.pageYOffset;
+    window.onscroll = () => {
+      const currentScrollPos = window.pageYOffset;
+      document.querySelector('.nav').style.top = prevScrollPos > currentScrollPos ? "0" : "-100px";
+      prevScrollPos = currentScrollPos;
+    };
+
+    // Fetch dashboard statistics and recent requests
+    const fetchDashboardStats = async () => {
+      try {
+        // Requests API call
+        const response = await fetch('http://localhost:8080/api/user-requests');
+        const requests = await response.json();
+
+        const totalRes = await fetch('http://localhost:8080/api/resources/available-items');
+        const resources = await totalRes.json();
+
+        // Update stats
+        document.getElementById('totalResources').textContent = resources.length;
+        document.getElementById('requestsMade').textContent = requests.length;
+        document.getElementById('fulfilledRequests').textContent = requests.filter(r => r.status.toLowerCase() === 'fulfilled').length;
+        document.getElementById('pendingRequests').textContent = requests.filter(r => r.status.toLowerCase() === 'pending').length;
+
+        populateRequestsTable(requests);
+      } catch (error) {
+        console.error("Failed to load dashboard stats:", error);
+        document.getElementById('requestsTableBody').innerHTML = `<tr><td colspan="5">Failed to load requests.</td></tr>`;
+      }
+    };
+
+    // Populate the recent requests table
+    const populateRequestsTable = (requests) => {
+      const tableBody = document.getElementById('requestsTableBody');
+      tableBody.innerHTML = '';
+
+      if (requests.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5">No requests found.</td></tr>`;
+        return;
+      }
+
+      requests.slice(0, 10).forEach(req => {
+        tableBody.insertAdjacentHTML('beforeend', `
+          <tr>
+            <td>${req.id}</td>
+            <td>${req.resourceName}</td>
+            <td>${req.quantity}</td>
+            <td>${req.status}</td>
+            <td>${new Date(req.requestDate).toLocaleDateString()}</td>
+          </tr>`);
+      });
+    };
+
+    // Optional WebSocket connection to receive real-time updates
+    const connectWebSocket = () => {
+      const socket = new SockJS('http://localhost:8080/ws');
+      const stompClient = Stomp.over(socket);
+
+      stompClient.connect({}, () => {
+        console.log('WebSocket connected');
+        stompClient.subscribe('/topic/requests', message => {
+          console.log('WebSocket update:', message.body);
+          fetchDashboardStats(); // Refresh dashboard on new updates
+        });
+      }, error => {
+        console.error('WebSocket connection error:', error);
+      });
+    };
+
+    // Init on page load
+    window.onload = () => {
+      fetchDashboardStats();
+      connectWebSocket(); // Optional: remove if not using real-time updates
+    };
+  </script>
+
+</body>
+
+</html>
