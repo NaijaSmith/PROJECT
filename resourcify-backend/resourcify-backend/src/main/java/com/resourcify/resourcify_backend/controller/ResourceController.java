@@ -24,7 +24,7 @@ public class ResourceController {
     }
 
     // ✅ Get distinct locations from resources
-    @GetMapping("/locations")
+    @GetMapping("/location")
     public ResponseEntity<List<String>> getDistinctLocations() {
         List<String> locations = resourceRepository.findDistinctLocations();
         return ResponseEntity.ok(locations);

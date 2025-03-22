@@ -4,18 +4,23 @@ import com.resourcify.resourcify_backend.model.ResourceItem;
 import com.resourcify.resourcify_backend.model.UserRequest;
 import com.resourcify.resourcify_backend.repository.ResourceRepository;
 import com.resourcify.resourcify_backend.repository.UserRequestRepository;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j; // For logging
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/requests")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://127.0.0.1:5501")  // Match your frontend URL
+@CrossOrigin(origins = "http://127.0.0.1:5501")  // Adjust origin for frontend if needed
 public class ResourceRequestController {
 
     private final ResourceRepository resourceRepository;
@@ -24,53 +29,61 @@ public class ResourceRequestController {
 
     /**
      * Submit a resource request:
-     * 1. Check if the resource exists at the given location.
-     * 2. Validate if there's enough quantity.
-     * 3. Deduct the quantity and update the resource.
-     * 4. Save the user request.
-     * 5. Notify via WebSocket.
+     * - Validate inputs and resource availability
+     * - Deduct from available resources
+     * - Save the request
+     * - Notify clients via WebSocket
      */
     @PostMapping("/submit")
     public ResponseEntity<String> submitRequest(@RequestBody UserRequest userRequest) {
+        log.info("Received resource request: {}", userRequest);
 
-        String name = userRequest.getName();               // Resource name
-        String location = userRequest.getLocation();       // Resource location
-        int quantityRequested = userRequest.getQuantity(); // Quantity user is requesting
+        String resourceName = userRequest.getName();
+        String location = userRequest.getLocation();
+        int quantityRequested = userRequest.getQuantity();
 
-        // 1. Look up the resource by name and location
-        Optional<ResourceItem> resourceItemOpt = resourceRepository.findByNameAndLocation(name, location);
+        // Validate input
+        if (resourceName == null || resourceName.isBlank() || location == null || location.isBlank()) {
+            log.warn("Invalid request. Resource name or location is missing.");
+            return ResponseEntity.badRequest().body("Resource name and location are required.");
+        }
+
+        // Set static userId (replace with actual userId in a real app)
+        userRequest.setUserId(1);
+        userRequest.setRequestDate(LocalDateTime.now());
+        userRequest.setStatus("Pending");
+
+        // Look up resource item
+        Optional<ResourceItem> resourceItemOpt = resourceRepository.findByNameAndLocation(resourceName, location);
 
         if (resourceItemOpt.isEmpty()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("Resource not found for the given name and location.");
+            log.warn("Resource not found: {} at {}", resourceName, location);
+            return ResponseEntity.badRequest().body("Resource not found for the given name and location.");
         }
 
         ResourceItem resourceItem = resourceItemOpt.get();
 
-        // 2. Validate if enough quantity is available
+        // Validate quantity
         if (resourceItem.getQuantity() < quantityRequested) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("Not enough quantity available! Requested: " + quantityRequested
-                            + ", Available: " + resourceItem.getQuantity());
+            String message = String.format("Not enough quantity available! Requested: %d, Available: %d",
+                    quantityRequested, resourceItem.getQuantity());
+            log.warn(message);
+            return ResponseEntity.badRequest().body(message);
         }
 
-        // 3. Deduct the requested quantity and save the updated resource
-        int newQuantity = resourceItem.getQuantity() - quantityRequested;
-        resourceItem.setQuantity(newQuantity);
+        // Deduct quantity
+        resourceItem.setQuantity(resourceItem.getQuantity() - quantityRequested);
         resourceRepository.save(resourceItem);
+        log.info("Resource updated: {} | New quantity: {}", resourceItem.getName(), resourceItem.getQuantity());
 
-        // 4. Save the user request
-        userRequest.setResourceId(resourceItem.getId()); // FK to resource item
-        userRequest.setStatus("Pending");
+        // Save user request
+        userRequest.setResourceId(resourceItem.getId());
         userRequestRepository.save(userRequest);
+        log.info("User request saved successfully: {}", userRequest);
 
-        // 5. Notify subscribers via WebSocket
-        messagingTemplate.convertAndSend(
-                "/topic/updates",
-                "Resource updated: " + resourceItem.getName() + " | New quantity: " + newQuantity
-        );
+        // Notify via WebSocket
+        messagingTemplate.convertAndSend("/topic/updates",
+                "Resource updated: " + resourceItem.getName() + " | New quantity: " + resourceItem.getQuantity());
 
         return ResponseEntity.ok("Request submitted successfully!");
     }
@@ -81,6 +94,7 @@ public class ResourceRequestController {
     @GetMapping("/all")
     public ResponseEntity<List<UserRequest>> getAllRequests() {
         List<UserRequest> requests = userRequestRepository.findAll();
+        log.info("Fetched {} user requests", requests.size());
         return ResponseEntity.ok(requests);
     }
 }

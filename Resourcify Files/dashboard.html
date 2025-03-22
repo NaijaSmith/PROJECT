@@ -149,7 +149,7 @@
         const response = await fetch('http://localhost:8080/api/user-requests');
         const requests = await response.json();
 
-        const totalRes = await fetch('http://localhost:8080/api/resources/available-items');
+        const totalRes = await fetch('http://localhost:8080/api/resources/view/available-items');
         const resources = await totalRes.json();
 
         // Update stats

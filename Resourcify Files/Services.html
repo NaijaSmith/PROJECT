@@ -7,15 +7,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="Nicolas Kariuki" />
   <title>Resourcify | Services</title>
-  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+
+  <!-- Icons & Favicon -->
   <link rel="icon" type="image/x-icon" href="favicon_io/favicon.ico" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+
+  <!-- Stylesheets -->
   <link rel="stylesheet" href="Services.css" />
 </head>
 
 <body>
-
   <!-- NAVIGATION -->
   <header class="wrapper">
     <nav class="nav">
@@ -40,8 +43,7 @@
 
   <!-- MAIN CONTENT -->
   <main class="content">
-
-    <!-- REQUEST RESOURCE FORM -->
+    <!-- RESOURCE REQUEST FORM -->
     <section class="form-container">
       <h2>Request Resource</h2>
       <form id="requestResourceForm">
@@ -52,12 +54,13 @@
         <select id="location" required></select>
 
         <label for="quantity">Quantity:</label>
-        <input type="number" id="quantity" name="quantity" min="1" required />
+        <input type="number" id="quantity" min="1" required />
 
-        <button type="submit">Submit Request</button>
-        <button type="button" onclick="window.location.href='dashboard.html'">View Request</button>
-        <button type="reset">Clear</button>
-
+        <div class="form-buttons">
+          <button type="submit">Submit Request</button>
+          <button type="button" onclick="redirectToDashboard()">View Requests</button>
+          <button type="reset">Clear</button>
+        </div>
       </form>
     </section>
 
@@ -68,7 +71,7 @@
         <table>
           <thead>
             <tr>
-              <th>Id</th>
+              <th>ID</th>
               <th>Name</th>
               <th>Description</th>
               <th>Quantity</th>
@@ -87,7 +90,6 @@
       <h2>Resource Distribution Map</h2>
       <div id="map"></div>
     </section>
-
   </main>
 
   <!-- FOOTER -->
@@ -113,17 +115,13 @@
     </div>
   </footer>
 
-  <!-- SCRIPTS -->
-  <!-- SockJS & STOMP for WebSocket -->
+  <!-- JS LIBRARIES -->
   <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
-  <script async
-    defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDTWXuoQYmRucYEDMUvnF565oe-d7Yn3A0&callback=initMap">
-  </script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDTWXuoQYmRucYEDMUvnF565oe-d7Yn3A0&callback=initMap"></script>
 
-
-
+  <!-- MAIN SCRIPT -->
   <script>
     let map;
     let markers = [];
@@ -133,7 +131,11 @@
       document.getElementById("navMenu").classList.toggle("responsive");
     };
 
-    // Scroll navbar hide/show
+    const redirectToDashboard = () => {
+      window.location.href = 'dashboard.html';
+    };
+
+    // Navbar hide/show on scroll
     let prevScrollPos = window.pageYOffset;
     window.onscroll = () => {
       const currentScrollPos = window.pageYOffset;
@@ -141,7 +143,7 @@
       prevScrollPos = currentScrollPos;
     };
 
-    // Initialize Google Map (global for callback)
+    // GOOGLE MAP INITIALIZATION
     window.initMap = () => {
       const centerCoords = { lat: -1.286389, lng: 36.817223 }; // Nairobi
 
@@ -160,44 +162,50 @@
 
       fetchAvailableItems();
       loadLocations();
-      connectWebSocket(); // Connect after map loads
+      connectWebSocket();
     };
 
+    // FETCH AVAILABLE RESOURCES
     const fetchAvailableItems = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/get-available-items');
-        if (!res.ok) throw new Error('Failed to fetch items.');
+        const res = await fetch('http://localhost:8080/api/resources/available-items');
+        if (!res.ok) throw new Error('Failed to fetch available items.');
 
         const resources = await res.json();
         updateResourcesTable(resources);
         updateMapMarkers(resources);
-
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching available items:', error);
       }
     };
 
+    // FETCH LOCATIONS FOR DROPDOWN
     const loadLocations = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/location');
-        if (!res.ok) throw new Error('Failed to fetch location.');
+        const res = await fetch('http://localhost:8080/api/resources/location');
+        if (!res.ok) throw new Error('Failed to fetch locations.');
 
         const locations = await res.json();
-        const locationSelect = document.getElementById('location');
-
-        locationSelect.innerHTML = '<option value="">Select a location</option>';
-        locations.forEach(loc => {
-          const option = document.createElement('option');
-          option.value = loc;
-          option.textContent = loc;
-          locationSelect.appendChild(option);
-        });
-
+        populateLocationSelect(locations);
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching locations:', error);
       }
     };
 
+    // POPULATE LOCATIONS IN SELECT DROPDOWN
+    const populateLocationSelect = (locations) => {
+      const locationSelect = document.getElementById('location');
+      locationSelect.innerHTML = '<option value="">Select a location</option>';
+
+      locations.forEach(loc => {
+        const option = document.createElement('option');
+        option.value = loc;
+        option.textContent = loc;
+        locationSelect.appendChild(option);
+      });
+    };
+
+    // UPDATE RESOURCES TABLE
     const updateResourcesTable = (resources) => {
       const tableBody = document.getElementById('itemsTableBody');
       const resourceNameSelect = document.getElementById('resourceNameSelect');
@@ -215,7 +223,8 @@
             <td>${resource.location}</td>
             <td>${resource.latitude}</td>
             <td>${resource.longitude}</td>
-          </tr>`);
+          </tr>
+        `);
 
         const option = document.createElement('option');
         option.value = resource.name;
@@ -224,6 +233,7 @@
       });
     };
 
+    // UPDATE GOOGLE MAP MARKERS
     const updateMapMarkers = (resources) => {
       markers.forEach(marker => marker.setMap(null));
       markers = [];
@@ -244,8 +254,8 @@
               <p>${resource.description}</p>
               <p>Quantity: ${resource.quantity}</p>
               <p>Location: ${resource.location}</p>
-              <p>Coordinates: ${resource.latitude}, ${resource.longitude}</p>
-            </div>`
+            </div>
+          `
         });
 
         marker.addListener("click", () => infoWindow.open(map, marker));
@@ -253,50 +263,59 @@
       });
     };
 
+    // HANDLE RESOURCE REQUEST FORM SUBMIT
     document.getElementById('requestResourceForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const resourceName = document.getElementById('resourceNameSelect').value;
+      const name = document.getElementById('resourceNameSelect').value;
       const location = document.getElementById('location').value;
-      const quantity = document.getElementById('quantity').value;
+      const quantity = parseInt(document.getElementById('quantity').value, 10);
 
-      if (!resourceName || !location) {
-        alert('Please select both a resource and a location!');
+      if (!name || !location || quantity <= 0) {
+        alert('Please fill out all fields correctly.');
         return;
       }
 
       try {
-        const res = await fetch('http://localhost:8080/api/request-resource', {
+        const res = await fetch('http://localhost:8080/api/requests/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resourceName, location, quantity })
+          body: JSON.stringify({ name, location, quantity })
         });
 
-        if (!res.ok) throw new Error('Request failed.');
+        if (!res.ok) throw new Error('Request submission failed.');
 
-        alert('Resource requested successfully!');
-        fetchAvailableItems();
+        alert('Resource request submitted successfully!');
+        fetchAvailableItems(); // Refresh resources
       } catch (error) {
-        console.error(error);
-        alert('Failed to request resource.');
+        console.error('Error submitting request:', error);
+        alert('Failed to submit resource request.');
       }
     });
 
+    // CONNECT TO WEBSOCKET
     const connectWebSocket = () => {
       const socket = new SockJS('http://localhost:8080/ws');
       stompClient = Stomp.over(socket);
 
       stompClient.connect({}, () => {
-        console.log('Connected to WebSocket!');
-        stompClient.subscribe('/topic/messages', (message) => {
-          console.log('WS Message:', message.body);
+        console.log('Connected to WebSocket.');
+        stompClient.subscribe('/topic/updates', (message) => {
+          console.log('WebSocket update:', message.body);
+          fetchAvailableItems(); // Refresh resources on update
         });
       }, (error) => {
         console.error('WebSocket connection error:', error);
       });
     };
-  </script>
 
+    // INITIALIZE EVERYTHING
+    window.onload = () => {
+      fetchAvailableItems();
+      loadLocations();
+      connectWebSocket();
+    };
+  </script>
 </body>
 
 </html>
