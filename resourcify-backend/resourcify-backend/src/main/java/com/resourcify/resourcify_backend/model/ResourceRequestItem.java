@@ -1,23 +1,26 @@
 package com.resourcify.resourcify_backend.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-
-@Entity
-@Table(name = "requests")
 public class ResourceRequestItem {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
 
+    private int id;
     private int resourceId;
-    private String resourceName;
+    private String name;
     private String status;
     private int quantity;
     private String location;
+
+    // Constructors
+    public ResourceRequestItem() {
+    }
+
+    public ResourceRequestItem(int id, int resourceId, String status, int quantity, String location, String name) {
+            this.id = id;
+            this.resourceId = resourceId;
+            this.name = name;
+        this.status = status;
+        this.quantity = quantity;
+        this.location = location;
+    }
 
     // Getters and Setters
     public int getId() {
@@ -36,12 +39,12 @@ public class ResourceRequestItem {
         this.resourceId = resourceId;
     }
 
-    public String getResourceName() {
-        return resourceName;
+    public String getName() {
+        return name;
     }
 
-    public void setResourceName(String resourceName) {
-        this.resourceName = resourceName;
+    public void Name(String Name) {
+        this.name = Name;
     }
 
     public String getStatus() {

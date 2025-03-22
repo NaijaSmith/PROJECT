@@ -1,6 +1,6 @@
 package com.resourcify.resourcify_backend.model;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,67 +11,100 @@ public class UserRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "Resource_id", nullable = false)
+    @Column(name = "resource_id")
     private int resourceId;
 
-    @Column(name = "User_id", nullable = false)
+    @Column(name = "user_id")
     private int userId;
 
-    @Column(name = "Status", nullable = false)
-    private String status; // Fulfilled / Pending / Rejected
-    
+    private String name;
 
-    @Column(name = "Request_date", nullable = false)
-    private LocalDateTime requestDate;
+    private String status;
 
-    @Column(length = 255, nullable = false)
     private String location;
 
-    @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "resource_name", length = 255, nullable = false)
-    private String resourceName;
+    @Column(name = "request_date")
+    private LocalDateTime requestDate;
 
     // Constructors
     public UserRequest() {
-        this.requestDate = LocalDateTime.now();
-        this.status = "Pending"; // Default status (optional)
     }
 
-    public UserRequest(int resourceId, int userId, String resourceName, String location, int quantity, String status) {
+    public UserRequest(int id, int resourceId, int userId, String name, String status, String location, int quantity, LocalDateTime requestDate) {
+        this.id = id;
         this.resourceId = resourceId;
         this.userId = userId;
-        this.resourceName = resourceName;
+        this.name = name;
+        this.status = status;
         this.location = location;
         this.quantity = quantity;
-        this.status = status;
-        this.requestDate = LocalDateTime.now();
+        this.requestDate = requestDate;
     }
 
     // Getters and Setters
+    public int getId() {
+        return id;
+    }
 
-    public int getId() { return id; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public int getResourceId() { return resourceId; }
-    public void setResourceId(int resourceId) { this.resourceId = resourceId; }
+    public int getResourceId() {
+        return resourceId;
+    }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public void setResourceId(int resourceId) {
+        this.resourceId = resourceId;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public int getUserId() {
+        return userId;
+    }
 
-    public LocalDateTime getRequestDate() { return requestDate; }
-    public void setRequestDate(LocalDateTime requestDate) { this.requestDate = requestDate; }
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public String getName() {
+        return name;
+    }
 
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getResourceName() { return resourceName; }
-    public void setResourceName(String resourceName) { this.resourceName = resourceName; }
+    public String getStatus() {
+        return status;
+    }
 
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public LocalDateTime getRequestDate() {
+        return requestDate;
+    }
+
+    public void setRequestDate(LocalDateTime requestDate) {
+        this.requestDate = requestDate;
+    }
 }

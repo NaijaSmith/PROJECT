@@ -12,5 +12,5 @@ public interface ResourceRepository extends JpaRepository<ResourceItem, Integer>
     @Query("SELECT DISTINCT r.location FROM ResourceItem r WHERE r.location IS NOT NULL")
     List<String> findDistinctLocations();
 
-    Optional<ResourceItem> findByResourceNameAndLocation(String resourceName, String location);
+    Optional<ResourceItem> findByNameAndLocation(String name, String location);
 }
