@@ -76,7 +76,7 @@ h1{
 }
 main{
     font-size: 1.2rem;
-    color: #000000;
+    color: #ffffff;
     margin-top: 20px;
     display: inline-block;
 }
@@ -117,6 +117,41 @@ ol{
 }
 .nav-menu-btn {
     display: none;
+}
+
+.wrapper-text{
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    display: list-item;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 0 20px;
+}
+.grid-item:hover{
+    background: rgb(240, 0, 40);
+}
+.wrapper-text ol {
+    font-size: 1.4rem;
+    font-weight: 500;
+    list-style-position: inside;
+    padding-left: 0;
+    counter-reset: list-counter;
+}
+.wrapper-text ol > li {
+    margin-bottom: 30px;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.wrapper-text ol > li strong {
+    display: block;
+    font-size: 1.2rem;
+    color: #00a86b;
+    margin-bottom: 10px;
+}
+.wrapper-text ul {
+    margin-top: 10px;
+    padding-left: 20px;
 }
 
 
