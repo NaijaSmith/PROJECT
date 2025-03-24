@@ -66,6 +66,9 @@
         <h3>Pending Requests</h3>
         <p id="pendingRequests">Loading...</p>
       </div>
+      <div>
+      <h2>Predicted Resource Demand</h2>
+      <div id="predictionResults">Loading predictions...</div>
     </section>
 
     <!-- RECENT REQUESTS TABLE -->
@@ -145,29 +148,35 @@
 
     // Fetch dashboard statistics and recent requests
     const fetchDashboardStats = async () => {
-            try {
-                const response = await fetch('http://localhost:8080/api/requests');
-                if (!response.ok) throw new Error('Failed to fetch requests.');
-                const requests = await response.json();
+  try {
+    const requestsResponse = await fetch('http://localhost:8080/api/requests');
+    const resourcesResponse = await fetch('http://localhost:8080/api/resources/available-items');
 
-                const totalRes = await fetch('http://localhost:8080/api/resources/view/available-items');
-                if (!totalRes.ok) throw new Error('Failed to fetch resources.');
-                const resources = await totalRes.json();
+    if (!requestsResponse.ok || !resourcesResponse.ok) {
+      throw new Error("Failed to fetch data from server");
+    }
 
-                document.getElementById('totalResources').textContent = resources.length;
-                document.getElementById('requestsMade').textContent = requests.length;
-                document.getElementById('fulfilledRequests').textContent = requests.filter(r => r.request.status.toLowerCase() === 'fulfilled').length;
-                document.getElementById('pendingRequests').textContent = requests.filter(r => r.request.status.toLowerCase() === 'pending').length;
+    const requests = await requestsResponse.json();
+    const resources = await resourcesResponse.json();
 
-                const isAdmin = await checkAdminRole();
-                populateRequestsTable(requests, isAdmin);
-            } catch (error) {
-                console.error("Failed to load dashboard stats:", error);
-                document.getElementById('requestsTableBody').innerHTML = `<tr><td colspan="6">Failed to load requests.</td></tr>`;
-            }
-        };
+    document.getElementById('totalResources').textContent = resources.length;
+    document.getElementById('requestsMade').textContent = requests.length;
+    document.getElementById('fulfilledRequests').textContent =
+      requests.filter(r => r.request.status.toLowerCase() === 'approved').length;
+    document.getElementById('pendingRequests').textContent =
+      requests.filter(r => r.request.status.toLowerCase() === 'pending').length;
 
-        const populateRequestsTable = (requests, isAdmin) => {
+    populateRequestsTable(requests);
+
+  } catch (error) {
+    console.error("Dashboard stats load error:", error);
+    document.getElementById('requestsTableBody').innerHTML = `
+      <tr><td colspan="6">Failed to load requests.</td></tr>`;
+  }
+};
+
+
+        const populateRequestsTable = (requests) => {
             const tableBody = document.getElementById('requestsTableBody');
             tableBody.innerHTML = '';
 
@@ -177,11 +186,6 @@
             }
 
             requests.slice(0, 10).forEach(req => {
-                let actions = '';
-                if (isAdmin) {
-                    actions = `<button onclick="approveRequest(${req.request.id})">Approve</button>`;
-                }
-
                 tableBody.insertAdjacentHTML('beforeend', `
                     <tr>
                         <td>${req.request.id}</td>
@@ -189,37 +193,11 @@
                         <td>${req.request.quantity}</td>
                         <td>${req.request.status}</td>
                         <td>${new Date(req.request.requestDate).toLocaleDateString()}</td>
-                        <td>${actions}</td>
+                        <td><button class="approve-button" data-request-id="${req.request.id}">Approve</button></td>
                     </tr>`);
             });
         };
 
-        function approveRequest(requestId) {
-            fetch(`/api/requests/${requestId}/status?status=Approved`, {
-                method: 'PUT',
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log('Request approved.');
-                    fetchDashboardStats();
-                } else {
-                    console.error('Failed to approve request.');
-                }
-            });
-        }
-
-        const checkAdminRole = async () => {
-            // Replace with your actual logic to check admin role
-            const token = localStorage.getItem('token');
-            if (token) {
-                // Example: If the token contains a role field:
-                const decodedToken = JSON.parse(atob(token.split('.')[1])); // Basic decode example
-                if (decodedToken && decodedToken.role === 'admin') {
-                    return true;
-                }
-            }
-            return false;
-        };
 
         const connectWebSocket = () => {
             const socket = new SockJS('http://localhost:8080/ws');
@@ -227,14 +205,84 @@
 
             stompClient.connect({}, () => {
                 console.log('WebSocket connected');
+
                 stompClient.subscribe('/topic/requests', message => {
-                    console.log('WebSocket update:', message.body);
+                    console.log('WebSocket update (requests):', message.body);
                     fetchDashboardStats();
+                });
+
+                stompClient.subscribe('/topic/fulfilledRequests', message => {
+                    const fulfilledRequest = JSON.parse(message.body);
+                    addFulfilledRequestToTable(fulfilledRequest);
                 });
             }, error => {
                 console.error('WebSocket connection error:', error);
             });
         };
+        const approveRequest = (requestId) => {
+          fetch(`http://localhost:8080/api/resources/${requestId}/status?status=Approved`, {
+            method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json' // optional but recommended if body exists
+        }
+            })
+          .then(response => {
+          if (response.ok) {
+              alert("Request approved successfully!");
+              fetchDashboardStats(); // Refresh data
+          } else {
+              alert("Failed to approve request.");
+              console.error("Failed to approve request:", response.statusText);
+      }
+            })
+          .catch(error => {
+              console.error("Error approving request:", error);
+              alert("Error approving request.");
+  });
+};
+        const addFulfilledRequestToTable = (fulfilledRequest) => {
+            const fulfilledTable = document.getElementById('fulfilledRequestsTableBody');
+            const newRow = fulfilledTable.insertRow();
+
+            newRow.innerHTML = `
+                <td>${fulfilledRequest.id}</td>
+                <td>${fulfilledRequest.resourceName}</td>
+                <td>${fulfilledRequest.quantity}</td>
+                <td>${fulfilledRequest.status}</td>
+                <td>${new Date(fulfilledRequest.requestDate).toLocaleDateString()}</td>
+            `;
+        };
+
+        document.addEventListener("click", function(event) {
+            if (event.target.classList.contains("approve-button")) {
+                const requestId = event.target.dataset.requestId;
+                approveRequest(requestId);
+            }
+        });
+
+        async function fetchPredictions(location) {
+    try {
+        const res = await fetch(`http://localhost:8080/api/predict/${location}?daysAhead=7`);
+        if (!res.ok) throw new Error("Prediction fetch failed");
+
+        const predictions = await res.json();
+
+        let output = "";
+        for (const [resource, quantity] of Object.entries(predictions)) {
+            output += `<p><strong>${resource}</strong>: ${quantity} units predicted in 7 days</p>`;
+        }
+
+        document.getElementById('predictionResults').innerHTML = output;
+
+    } catch (error) {
+        console.error("Prediction error:", error);
+        alert("Failed to fetch predictions");
+    }
+}
+
+// Call on page load or button click
+fetchPredictions("Nairobi");
+
 
         window.onload = () => {
             fetchDashboardStats();

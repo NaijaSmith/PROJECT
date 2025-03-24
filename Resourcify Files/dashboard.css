@@ -16,12 +16,125 @@ body {
     overflow-y: scroll;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
+.wrapper{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(39, 39, 39, 0.4);
+}
 
-.wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(39, 39, 39, 0.4);
+/* Navigation */
+.nav {
+  position: fixed;
+  top: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  height: 100px;
+  padding: 0 50px;
+  background-color: rgba(39, 39, 39, 0.7);
+  z-index: 100;
+  transition: top .3s ease-in-out;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo img {
+  height: 50px;
+}
+
+.nav-logo span {
+  font-size: 1.8rem;
+  color: #00a86b;
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+}
+
+.nav-menu ul {
+  display: flex;
+  list-style: none;
+}
+
+.nav-menu ul li {
+  margin: 0 20px;
+}
+
+.nav-menu ul li a {
+  text-decoration: none;
+  font-weight: 600;
+  color: #ffffff;
+  transition: color 0.3s, border-bottom 0.3s;
+}
+
+.nav-menu ul li a:hover,
+.nav-menu ul li a.active {
+  color: #00a86b;
+  border-bottom: 2px solid #00a86b;
+}
+
+.nav-button {
+  display: block;
+  align-items: center;
+  transition: opacity .3s ease-out;
+}
+
+.nav-button .btn {
+  width: 130px;
+  height: 40px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.3s;
+  color: #fff;
+}
+
+.nav-button .btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive Navigation */
+.nav-menu-btn {
+  display: none;
+}
+
+.nav-menu.responsive {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 100px;
+  left: 0;
+  width: 100%;
+  background-color: rgba(39, 39, 39, 0.9);
+}
+
+.nav-menu.responsive ul {
+  flex-direction: column;
+  text-align: center;
+}
+
+.nav-menu-btn i {
+  font-size: 25px;
+  color: #fff;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.nav-menu-btn i:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Dashboard Main Content */

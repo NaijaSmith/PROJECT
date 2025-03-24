@@ -27,7 +27,7 @@
                     <li><a href="Services.html" class="link">Services</a></li>
                     <li><a href="About.Html" class="link">About</a></li>
                     <li><a href="Login.html" class="link">Login | Signup</a></li>
-                    <li id="logoutLink"><a href="#" class="link">Logout</a></li>
+                    <li><a href="Login.html" class="link">Logout</a></li>
                 </ul>
             </div>
         <div class="nav-menu-btn">
@@ -194,32 +194,5 @@
         }
     </script>
 
-    <script>
-        // Logout functionality
-        const logoutLink = document.getElementById('logoutLink');
-
-
-        if (logoutLink) {
-        logoutLink.addEventListener('click', function(event) {
-            event.preventDefault(); 
-            logout(); 
-    });
-}
-        function logout() {
-            fetch('/logout', {
-            method: 'POST',
-    })
-        .then(response => {
-            if (response.ok) {
-            localStorage.removeItem('token');
-            window.location.href = '/login'; // Redirect to login page
-        } else {
-            console.error('Logout failed');
-        }
-    });
-}
-    </script>
-
-    
 </body>
 </html>
