@@ -1,7 +1,7 @@
 package com.resourcify.resourcify_backend.controller;
 
-import com.resourcify.resourcify_backend.repository.UserRepository;
 import com.resourcify.resourcify_backend.model.User;
+import com.resourcify.resourcify_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,27 +24,23 @@ public class AuthService {
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email is already in use!");
         }
-        
+
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setRole("user"); // Assign the default role "user"
+
         return userRepository.save(user);
     }
 
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
-    }
-
-    public Object getPasswordEncoder() {
-        throw new UnsupportedOperationException("Unimplemented method 'getPasswordEncoder'");
+                .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
     }
 
     public boolean authenticate(String username, String rawPassword) {
         User user = findByUsername(username);
         return passwordEncoder.matches(rawPassword, user.getPassword());
     }
-    
 }
-

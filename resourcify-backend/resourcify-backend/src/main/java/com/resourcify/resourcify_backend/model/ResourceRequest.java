@@ -1,5 +1,8 @@
 package com.resourcify.resourcify_backend.model;
 
+import jakarta.persistence.Table;
+
+@Table(name = "resources")
 public class ResourceRequest {
 
     private String resourceName;

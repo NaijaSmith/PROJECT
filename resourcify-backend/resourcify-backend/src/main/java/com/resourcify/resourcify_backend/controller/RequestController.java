@@ -1,41 +1,53 @@
 package com.resourcify.resourcify_backend.controller;
 
 import com.resourcify.resourcify_backend.model.UserRequest;
+import com.resourcify.resourcify_backend.model.ResourceItem;
 import com.resourcify.resourcify_backend.repository.UserRequestRepository;
+import com.resourcify.resourcify_backend.repository.ResourceRepository;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/requests")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://127.0.0.1:5501") // Frontend origin
+@CrossOrigin(origins = "http://127.0.0.1:5501")
 public class RequestController {
 
     private final UserRequestRepository userRequestRepository;
-    private final SimpMessagingTemplate messagingTemplate; // for WebSocket push
+    private final ResourceRepository resourceRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    // 1. Get all requests (Dashboard)
     @GetMapping
-    public ResponseEntity<List<UserRequest>> getAllRequests() {
+    public ResponseEntity<List<UserRequestDTO>> getAllRequests() {
         List<UserRequest> requests = userRequestRepository.findAll();
-        return ResponseEntity.ok(requests);
+
+        List<UserRequestDTO> requestDTOs = requests.stream().map(request -> {
+            ResourceItem resource = resourceRepository.findById(request.getResourceId()).orElse(null);
+            String resourceName = (resource != null) ? resource.getName() : "Unknown Resource";
+            return new UserRequestDTO(request, resourceName);
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(requestDTOs);
     }
 
-    // 2. Get a single request by ID
     @GetMapping("/{id}")
     public ResponseEntity<UserRequest> getRequestById(@PathVariable int id) {
         Optional<UserRequest> request = userRequestRepository.findById(id);
         return request.map(ResponseEntity::ok)
-                      .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // 3. Update request status (Fulfilled / Pending / Rejected)
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateRequestStatus(
             @PathVariable int id,
             @RequestParam String status
@@ -50,13 +62,11 @@ public class RequestController {
         userRequest.setStatus(status);
         userRequestRepository.save(userRequest);
 
-        // WebSocket broadcast (optional)
         messagingTemplate.convertAndSend("/topic/requests", userRequest);
 
         return ResponseEntity.ok("Status updated to " + status);
     }
 
-    // 4. Delete a request (optional)
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRequest(@PathVariable int id) {
         if (!userRequestRepository.existsById(id)) {
@@ -67,5 +77,12 @@ public class RequestController {
         messagingTemplate.convertAndSend("/topic/requests", "Request deleted: " + id);
 
         return ResponseEntity.ok("Request deleted successfully!");
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class UserRequestDTO {
+        private UserRequest request;
+        private String resourceName;
     }
 }

@@ -80,6 +80,7 @@
               <th>Quantity</th>
               <th>Status</th>
               <th>Date</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="requestsTableBody">
@@ -144,71 +145,102 @@
 
     // Fetch dashboard statistics and recent requests
     const fetchDashboardStats = async () => {
-      try {
-        // Requests API call
-        const response = await fetch('http://localhost:8080/api/user-requests');
-        const requests = await response.json();
+            try {
+                const response = await fetch('http://localhost:8080/api/requests');
+                if (!response.ok) throw new Error('Failed to fetch requests.');
+                const requests = await response.json();
 
-        const totalRes = await fetch('http://localhost:8080/api/resources/view/available-items');
-        const resources = await totalRes.json();
+                const totalRes = await fetch('http://localhost:8080/api/resources/view/available-items');
+                if (!totalRes.ok) throw new Error('Failed to fetch resources.');
+                const resources = await totalRes.json();
 
-        // Update stats
-        document.getElementById('totalResources').textContent = resources.length;
-        document.getElementById('requestsMade').textContent = requests.length;
-        document.getElementById('fulfilledRequests').textContent = requests.filter(r => r.status.toLowerCase() === 'fulfilled').length;
-        document.getElementById('pendingRequests').textContent = requests.filter(r => r.status.toLowerCase() === 'pending').length;
+                document.getElementById('totalResources').textContent = resources.length;
+                document.getElementById('requestsMade').textContent = requests.length;
+                document.getElementById('fulfilledRequests').textContent = requests.filter(r => r.request.status.toLowerCase() === 'fulfilled').length;
+                document.getElementById('pendingRequests').textContent = requests.filter(r => r.request.status.toLowerCase() === 'pending').length;
 
-        populateRequestsTable(requests);
-      } catch (error) {
-        console.error("Failed to load dashboard stats:", error);
-        document.getElementById('requestsTableBody').innerHTML = `<tr><td colspan="5">Failed to load requests.</td></tr>`;
-      }
-    };
+                const isAdmin = await checkAdminRole();
+                populateRequestsTable(requests, isAdmin);
+            } catch (error) {
+                console.error("Failed to load dashboard stats:", error);
+                document.getElementById('requestsTableBody').innerHTML = `<tr><td colspan="6">Failed to load requests.</td></tr>`;
+            }
+        };
 
-    // Populate the recent requests table
-    const populateRequestsTable = (requests) => {
-      const tableBody = document.getElementById('requestsTableBody');
-      tableBody.innerHTML = '';
+        const populateRequestsTable = (requests, isAdmin) => {
+            const tableBody = document.getElementById('requestsTableBody');
+            tableBody.innerHTML = '';
 
-      if (requests.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5">No requests found.</td></tr>`;
-        return;
-      }
+            if (requests.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6">No requests found.</td></tr>`;
+                return;
+            }
 
-      requests.slice(0, 10).forEach(req => {
-        tableBody.insertAdjacentHTML('beforeend', `
-          <tr>
-            <td>${req.id}</td>
-            <td>${req.resourceName}</td>
-            <td>${req.quantity}</td>
-            <td>${req.status}</td>
-            <td>${new Date(req.requestDate).toLocaleDateString()}</td>
-          </tr>`);
-      });
-    };
+            requests.slice(0, 10).forEach(req => {
+                let actions = '';
+                if (isAdmin) {
+                    actions = `<button onclick="approveRequest(${req.request.id})">Approve</button>`;
+                }
 
-    // Optional WebSocket connection to receive real-time updates
-    const connectWebSocket = () => {
-      const socket = new SockJS('http://localhost:8080/ws');
-      const stompClient = Stomp.over(socket);
+                tableBody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td>${req.request.id}</td>
+                        <td>${req.resourceName}</td>
+                        <td>${req.request.quantity}</td>
+                        <td>${req.request.status}</td>
+                        <td>${new Date(req.request.requestDate).toLocaleDateString()}</td>
+                        <td>${actions}</td>
+                    </tr>`);
+            });
+        };
 
-      stompClient.connect({}, () => {
-        console.log('WebSocket connected');
-        stompClient.subscribe('/topic/requests', message => {
-          console.log('WebSocket update:', message.body);
-          fetchDashboardStats(); // Refresh dashboard on new updates
-        });
-      }, error => {
-        console.error('WebSocket connection error:', error);
-      });
-    };
+        function approveRequest(requestId) {
+            fetch(`/api/requests/${requestId}/status?status=Approved`, {
+                method: 'PUT',
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Request approved.');
+                    fetchDashboardStats();
+                } else {
+                    console.error('Failed to approve request.');
+                }
+            });
+        }
 
-    // Init on page load
-    window.onload = () => {
-      fetchDashboardStats();
-      connectWebSocket(); // Optional: remove if not using real-time updates
-    };
-  </script>
+        const checkAdminRole = async () => {
+            // Replace with your actual logic to check admin role
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Example: If the token contains a role field:
+                const decodedToken = JSON.parse(atob(token.split('.')[1])); // Basic decode example
+                if (decodedToken && decodedToken.role === 'admin') {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        const connectWebSocket = () => {
+            const socket = new SockJS('http://localhost:8080/ws');
+            const stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, () => {
+                console.log('WebSocket connected');
+                stompClient.subscribe('/topic/requests', message => {
+                    console.log('WebSocket update:', message.body);
+                    fetchDashboardStats();
+                });
+            }, error => {
+                console.error('WebSocket connection error:', error);
+            });
+        };
+
+        window.onload = () => {
+            fetchDashboardStats();
+            connectWebSocket();
+        };
+    </script>
 
 </body>
 

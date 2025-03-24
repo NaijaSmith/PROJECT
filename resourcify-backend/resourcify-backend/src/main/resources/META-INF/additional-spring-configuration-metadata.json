@@ -1,0 +1,27 @@
+{"properties": [
+  {
+    "name": "spring.websocket.cors.allowed-origins",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.websocket.cors.allowed-origins'"
+  },
+  {
+    "name": "spring.websocket.cors.allowed-headers",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.websocket.cors.allowed-headers'"
+  },
+  {
+    "name": "spring.websocket.cors.allowed-methods",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.websocket.cors.allowed-methods'"
+  },
+  {
+    "name": "spring.websocket.cors.allow-credentials",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.websocket.cors.allow-credentials'"
+  },
+  {
+    "name": "spring.websocket.enabled",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.websocket.enabled'"
+  }
+]}
