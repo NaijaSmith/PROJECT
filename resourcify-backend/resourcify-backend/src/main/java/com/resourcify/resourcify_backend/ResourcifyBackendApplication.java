@@ -8,7 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     "com.config",
     "com.resourcify.resourcify_backend.controller",
     "com.resourcify.resourcify_backend.model",
-    "com.resourcify.resourcify_backend.repository"
+    "com.resourcify.resourcify_backend.repository",
+    "com.resourcify.resourcify_backend.util"
 })
 public class ResourcifyBackendApplication {
 

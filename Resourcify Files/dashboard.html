@@ -98,6 +98,15 @@
       <button onclick="redirectToRequestPage()">Submit New Request</button>
       <button onclick="redirectToServicesPage()">View Resources</button>
     </section>
+
+    <div id="adminSection" style="display: none;">
+      <h2>Admin Panel</h2>
+      <button onclick="approveRequest()">Approve Request</button>
+      <button onclick="rejectRequest()">Reject Request</button>
+      <button onclick="deleteRequest()">Delete Request</button>
+  </div>
+
+  <button id="logoutBtn">Logout</button>
   </main>
 
   <!-- FOOTER -->
@@ -126,163 +135,189 @@
   <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 
   <script>
-    const toggleMenu = () => {
-      document.getElementById("navMenu").classList.toggle("responsive");
-    };
+document.addEventListener("DOMContentLoaded", function () {
+    const token = localStorage.getItem("jwt");
 
-    const redirectToRequestPage = () => {
-      window.location.href = "Services.html";
-    };
-
-    const redirectToServicesPage = () => {
-      window.location.href = "Services.html";
-    };
-
-    // Navbar hide/show on scroll
-    let prevScrollPos = window.pageYOffset;
-    window.onscroll = () => {
-      const currentScrollPos = window.pageYOffset;
-      document.querySelector('.nav').style.top = prevScrollPos > currentScrollPos ? "0" : "-100px";
-      prevScrollPos = currentScrollPos;
-    };
-
-    // Fetch dashboard statistics and recent requests
-    const fetchDashboardStats = async () => {
-  try {
-    const requestsResponse = await fetch('http://localhost:8080/api/requests');
-    const resourcesResponse = await fetch('http://localhost:8080/api/resources/available-items');
-
-    if (!requestsResponse.ok || !resourcesResponse.ok) {
-      throw new Error("Failed to fetch data from server");
+    if (!token) {
+        window.location.href = "login.html"; // Redirect if not logged in
+        return;
     }
 
-    const requests = await requestsResponse.json();
-    const resources = await resourcesResponse.json();
+    const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT
+    const userRole = payload.role; // Extract role from token
 
-    document.getElementById('totalResources').textContent = resources.length;
-    document.getElementById('requestsMade').textContent = requests.length;
-    document.getElementById('fulfilledRequests').textContent =
-      requests.filter(r => r.request.status.toLowerCase() === 'approved').length;
-    document.getElementById('pendingRequests').textContent =
-      requests.filter(r => r.request.status.toLowerCase() === 'pending').length;
+    if (userRole === "ADMIN") {
+        document.getElementById("adminSection").style.display = "block";
+    } else if (userRole === "USER") {
+        document.getElementById("userSection").style.display = "block";
+    }
 
-    populateRequestsTable(requests);
+    document.getElementById("logoutBtn").addEventListener("click", function () {
+        localStorage.removeItem("jwt"); // Clear token
+        window.location.href = "login.html"; // Redirect to login
+    });
 
-  } catch (error) {
-    console.error("Dashboard stats load error:", error);
-    document.getElementById('requestsTableBody').innerHTML = `
-      <tr><td colspan="6">Failed to load requests.</td></tr>`;
-  }
+    // Initialize dashboard data
+    fetchDashboardStats();
+    connectWebSocket();
+});
+
+// Toggle Navigation Menu
+const toggleMenu = () => {
+    document.getElementById("navMenu").classList.toggle("responsive");
 };
 
+// Page Redirect Functions
+const redirectToRequestPage = () => window.location.href = "Services.html";
+const redirectToServicesPage = () => window.location.href = "Services.html";
 
-        const populateRequestsTable = (requests) => {
-            const tableBody = document.getElementById('requestsTableBody');
-            tableBody.innerHTML = '';
+// Navbar Hide/Show on Scroll
+let prevScrollPos = window.pageYOffset;
+window.onscroll = () => {
+    const currentScrollPos = window.pageYOffset;
+    document.querySelector('.nav').style.top = prevScrollPos > currentScrollPos ? "0" : "-100px";
+    prevScrollPos = currentScrollPos;
+};
 
-            if (requests.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6">No requests found.</td></tr>`;
-                return;
-            }
+// Fetch Dashboard Statistics
+const fetchDashboardStats = async () => {
+    try {
+        const [requestsResponse, resourcesResponse] = await Promise.all([
+            fetch('http://localhost:8080/api/requests'),
+            fetch('http://localhost:8080/api/resources/available-items')
+        ]);
 
-            requests.slice(0, 10).forEach(req => {
-                tableBody.insertAdjacentHTML('beforeend', `
-                    <tr>
-                        <td>${req.request.id}</td>
-                        <td>${req.resourceName}</td>
-                        <td>${req.request.quantity}</td>
-                        <td>${req.request.status}</td>
-                        <td>${new Date(req.request.requestDate).toLocaleDateString()}</td>
-                        <td><button class="approve-button" data-request-id="${req.request.id}">Approve</button></td>
-                    </tr>`);
-            });
-        };
-
-
-        const connectWebSocket = () => {
-            const socket = new SockJS('http://localhost:8080/ws');
-            const stompClient = Stomp.over(socket);
-
-            stompClient.connect({}, () => {
-                console.log('WebSocket connected');
-
-                stompClient.subscribe('/topic/requests', message => {
-                    console.log('WebSocket update (requests):', message.body);
-                    fetchDashboardStats();
-                });
-
-                stompClient.subscribe('/topic/fulfilledRequests', message => {
-                    const fulfilledRequest = JSON.parse(message.body);
-                    addFulfilledRequestToTable(fulfilledRequest);
-                });
-            }, error => {
-                console.error('WebSocket connection error:', error);
-            });
-        };
-        const approveRequest = (requestId) => {
-          fetch(`http://localhost:8080/api/resources/${requestId}/status?status=Approved`, {
-            method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json' // optional but recommended if body exists
+        if (!requestsResponse.ok || !resourcesResponse.ok) {
+            throw new Error("Failed to fetch data from server");
         }
-            })
-          .then(response => {
-          if (response.ok) {
-              alert("Request approved successfully!");
-              fetchDashboardStats(); // Refresh data
-          } else {
-              alert("Failed to approve request.");
-              console.error("Failed to approve request:", response.statusText);
-      }
-            })
-          .catch(error => {
-              console.error("Error approving request:", error);
-              alert("Error approving request.");
-  });
+
+        const requests = await requestsResponse.json();
+        const resources = await resourcesResponse.json();
+
+        document.getElementById('totalResources').textContent = resources.length;
+        document.getElementById('requestsMade').textContent = requests.length;
+        document.getElementById('fulfilledRequests').textContent =
+            requests.filter(r => r.request.status.toLowerCase() === 'approved').length;
+        document.getElementById('pendingRequests').textContent =
+            requests.filter(r => r.request.status.toLowerCase() === 'pending').length;
+
+        populateRequestsTable(requests);
+    } catch (error) {
+        console.error("Dashboard stats load error:", error);
+        document.getElementById('requestsTableBody').innerHTML = `
+            <tr><td colspan="6">Failed to load requests.</td></tr>`;
+    }
 };
-        const addFulfilledRequestToTable = (fulfilledRequest) => {
-            const fulfilledTable = document.getElementById('fulfilledRequestsTableBody');
-            const newRow = fulfilledTable.insertRow();
 
-            newRow.innerHTML = `
-                <td>${fulfilledRequest.id}</td>
-                <td>${fulfilledRequest.resourceName}</td>
-                <td>${fulfilledRequest.quantity}</td>
-                <td>${fulfilledRequest.status}</td>
-                <td>${new Date(fulfilledRequest.requestDate).toLocaleDateString()}</td>
-            `;
-        };
+// Populate Requests Table
+const populateRequestsTable = (requests) => {
+    const tableBody = document.getElementById('requestsTableBody');
+    tableBody.innerHTML = '';
 
-        document.addEventListener("click", function(event) {
-            if (event.target.classList.contains("approve-button")) {
-                const requestId = event.target.dataset.requestId;
-                approveRequest(requestId);
-            }
+    if (requests.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6">No requests found.</td></tr>`;
+        return;
+    }
+
+    requests.slice(0, 10).forEach(req => {
+        tableBody.insertAdjacentHTML('beforeend', `
+            <tr>
+                <td>${req.request.id}</td>
+                <td>${req.resourceName}</td>
+                <td>${req.request.quantity}</td>
+                <td>${req.request.status}</td>
+                <td>${new Date(req.request.requestDate).toLocaleDateString()}</td>
+                <td><button class="approve-button" data-request-id="${req.request.id}">Approve</button></td>
+            </tr>`);
+    });
+};
+
+// Connect WebSocket for Real-Time Updates
+const connectWebSocket = () => {
+    const socket = new SockJS('http://localhost:8080/ws');
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, () => {
+        console.log('WebSocket connected');
+
+        stompClient.subscribe('/topic/requests', message => {
+            console.log('WebSocket update (requests):', message.body);
+            fetchDashboardStats();
         });
 
-        async function fetchPredictions(location) {
+        stompClient.subscribe('/topic/fulfilledRequests', message => {
+            const fulfilledRequest = JSON.parse(message.body);
+            addFulfilledRequestToTable(fulfilledRequest);
+        });
+    }, error => {
+        console.error('WebSocket connection error:', error);
+    });
+};
+
+// Approve Request
+const approveRequest = (requestId) => {
+    fetch(`http://localhost:8080/api/resources/${requestId}/status?status=Approved`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Request approved successfully!");
+            fetchDashboardStats(); // Refresh data
+        } else {
+            alert("Failed to approve request.");
+            console.error("Failed to approve request:", response.statusText);
+        }
+    })
+    .catch(error => {
+        console.error("Error approving request:", error);
+        alert("Error approving request.");
+    });
+};
+
+// Add Fulfilled Request to Table
+const addFulfilledRequestToTable = (fulfilledRequest) => {
+    const fulfilledTable = document.getElementById('fulfilledRequestsTableBody');
+    fulfilledTable.insertAdjacentHTML('beforeend', `
+        <tr>
+            <td>${fulfilledRequest.id}</td>
+            <td>${fulfilledRequest.resourceName}</td>
+            <td>${fulfilledRequest.quantity}</td>
+            <td>${fulfilledRequest.status}</td>
+            <td>${new Date(fulfilledRequest.requestDate).toLocaleDateString()}</td>
+        </tr>`);
+};
+
+// Handle Approve Button Clicks
+document.addEventListener("click", function(event) {
+    if (event.target.classList.contains("approve-button")) {
+        const requestId = event.target.dataset.requestId;
+        approveRequest(requestId);
+    }
+});
+
+// Fetch Resource Predictions
+async function fetchPredictions(location) {
     try {
         const res = await fetch(`http://localhost:8080/api/predict/${location}?daysAhead=7`);
         if (!res.ok) throw new Error("Prediction fetch failed");
 
         const predictions = await res.json();
-
         let output = "";
+
         for (const [resource, quantity] of Object.entries(predictions)) {
             output += `<p><strong>${resource}</strong>: ${quantity} units predicted in 7 days</p>`;
         }
 
         document.getElementById('predictionResults').innerHTML = output;
-
     } catch (error) {
         console.error("Prediction error:", error);
         alert("Failed to fetch predictions");
     }
 }
 
-// Call on page load or button click
+// Fetch predictions on page load
 fetchPredictions("Nairobi");
-
 
         window.onload = () => {
             fetchDashboardStats();

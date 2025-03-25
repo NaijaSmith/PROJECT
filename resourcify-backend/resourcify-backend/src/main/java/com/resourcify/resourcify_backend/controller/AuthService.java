@@ -2,6 +2,7 @@ package com.resourcify.resourcify_backend.controller;
 
 import com.resourcify.resourcify_backend.model.User;
 import com.resourcify.resourcify_backend.repository.UserRepository;
+import com.resourcify.resourcify_backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,11 +17,10 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;  
+
     public User registerUser(String username, String email, String password) {
-        String[] nameParts = username.split(" ");
-        if (nameParts.length != 2) {
-            throw new RuntimeException("Username must contain both first name and last name!");
-        }
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email is already in use!");
         }
@@ -29,18 +29,19 @@ public class AuthService {
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole("user"); // Assign the default role "user"
+        user.setRole("USER");  // ✅ Use uppercase for consistency
 
         return userRepository.save(user);
     }
 
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
+    public String authenticateAndGenerateToken(String username, String rawPassword) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
-    }
 
-    public boolean authenticate(String username, String rawPassword) {
-        User user = findByUsername(username);
-        return passwordEncoder.matches(rawPassword, user.getPassword());
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new RuntimeException("Incorrect password!");
+        }
+
+        return jwtUtil.generateToken(user.getUsername(), user.getRole());  // ✅ Return JWT
     }
 }
